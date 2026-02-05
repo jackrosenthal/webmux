@@ -10,6 +10,7 @@ interface TerminalProps {
   paneId: string;
   wsRef: React.RefObject<WebSocket | null>;
   theme?: TerminalTheme | null | undefined;
+  scrollbackLines?: number | undefined;
 }
 
 /**
@@ -44,7 +45,7 @@ function toXtermTheme(theme: TerminalTheme): Omit<TerminalTheme, "name"> {
  * Terminal component that renders an xterm.js terminal and connects to
  * the backend via WebSocket for input/output.
  */
-export function Terminal({ paneId, wsRef, theme }: TerminalProps) {
+export function Terminal({ paneId, wsRef, theme, scrollbackLines }: TerminalProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const xtermRef = useRef<XTerm | null>(null);
   const fitAddonRef = useRef<FitAddon | null>(null);
@@ -66,6 +67,11 @@ export function Terminal({ paneId, wsRef, theme }: TerminalProps) {
       fontFamily: "monospace",
       fontSize: 14,
     };
+
+    // Apply scrollback if configured
+    if (scrollbackLines !== undefined) {
+      xtermOptions.scrollback = scrollbackLines;
+    }
 
     // Apply theme if available at creation time
     if (theme) {

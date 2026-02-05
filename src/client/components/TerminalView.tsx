@@ -15,7 +15,8 @@ import {
 } from "../services/api";
 import { copyFromTerminal, pasteToTerminal } from "../services/terminalRegistry";
 import type { LayoutSplit } from "../../shared/types";
-import type { ShortcutsConfig } from "../../shared/config";
+import type { ShortcutsConfig, TerminalConfig } from "../../shared/config";
+import { DEFAULT_CONFIG } from "../../shared/config";
 
 /**
  * TerminalView manages WebSocket connection and session state.
@@ -28,11 +29,15 @@ export function TerminalView() {
   const [shortcutsConfig, setShortcutsConfig] = useState<
     ShortcutsConfig | undefined
   >(undefined);
+  const [terminalConfig, setTerminalConfig] = useState<TerminalConfig>(
+    DEFAULT_CONFIG.terminal
+  );
 
-  // Fetch shortcuts config on mount
+  // Fetch config on mount
   useEffect(() => {
     getConfig().then((config) => {
       setShortcutsConfig(config.shortcuts);
+      setTerminalConfig(config.terminal);
     });
   }, []);
 
@@ -183,6 +188,7 @@ export function TerminalView() {
           onPaneFocus={handlePaneFocus}
           onResizeComplete={handleResizeComplete}
           theme={theme}
+          scrollbackLines={terminalConfig.scrollback_lines}
         />
       </div>
     </div>

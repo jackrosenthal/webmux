@@ -49,7 +49,7 @@ app.get("/api/health", (c) => c.json({ status: "ok" }));
 app.route("/api/session", sessionRoutes);
 app.route("/api/tabs", tabsRoutes);
 app.route("/api/panes", panesRoutes);
-app.route("/api/config", createConfigRoutes(config.shortcuts, config.appearance));
+app.route("/api/config", createConfigRoutes(config.shortcuts, config.appearance, config.terminal));
 app.route("/api/themes", createThemeRoutes(themes));
 
 // Serve static files from Vite build output

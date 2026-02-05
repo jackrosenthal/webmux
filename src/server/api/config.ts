@@ -4,7 +4,7 @@
  */
 
 import { Hono } from "hono";
-import type { ShortcutsConfig, AppearanceConfig } from "../../shared/config.js";
+import type { ShortcutsConfig, AppearanceConfig, TerminalConfig } from "../../shared/config.js";
 
 /**
  * Client-facing configuration (excludes sensitive server settings).
@@ -12,12 +12,13 @@ import type { ShortcutsConfig, AppearanceConfig } from "../../shared/config.js";
 export interface ClientConfig {
   shortcuts: ShortcutsConfig;
   appearance: AppearanceConfig;
+  terminal: TerminalConfig;
 }
 
 /**
  * Creates config routes with the given application config.
  */
-export function createConfigRoutes(shortcuts: ShortcutsConfig, appearance: AppearanceConfig) {
+export function createConfigRoutes(shortcuts: ShortcutsConfig, appearance: AppearanceConfig, terminal: TerminalConfig) {
   const app = new Hono();
 
   /**
@@ -27,6 +28,7 @@ export function createConfigRoutes(shortcuts: ShortcutsConfig, appearance: Appea
     const clientConfig: ClientConfig = {
       shortcuts,
       appearance,
+      terminal,
     };
     return c.json(clientConfig);
   });

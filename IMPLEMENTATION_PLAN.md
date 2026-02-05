@@ -149,7 +149,7 @@ Each step corresponds to a single commit.  Steps should be completed in order.
 
 ## Phase 13: Scrollback
 
-- [ ] **13.1** Configure xterm.js scrollback buffer from config value, default
+- [x] **13.1** Configure xterm.js scrollback buffer from config value, default
        100,000 lines
 
 - [ ] **13.2** Implement scrollback replay on reconnect - buffer recent terminal

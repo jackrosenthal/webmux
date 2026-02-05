@@ -21,6 +21,8 @@ interface SplitContainerProps {
     | undefined;
   /** Terminal theme to apply */
   theme?: TerminalTheme | null | undefined;
+  /** Number of lines of scrollback buffer */
+  scrollbackLines?: number | undefined;
 }
 
 /**
@@ -50,6 +52,7 @@ export function SplitContainer({
   onPaneFocus,
   onResizeComplete,
   theme,
+  scrollbackLines,
 }: SplitContainerProps) {
   // For leaf nodes, render the title bar and terminal
   if (node.type === "leaf") {
@@ -70,7 +73,7 @@ export function SplitContainer({
       <div className="split-leaf" onMouseEnter={handleMouseEnter}>
         <PaneTitleBar title={title} focused={isFocused} onClose={handleClose} />
         <div className="pane-terminal-container">
-          <Terminal paneId={node.paneId} wsRef={wsRef} theme={theme} />
+          <Terminal paneId={node.paneId} wsRef={wsRef} theme={theme} scrollbackLines={scrollbackLines} />
         </div>
       </div>
     );
@@ -86,6 +89,7 @@ export function SplitContainer({
       onPaneFocus={onPaneFocus}
       onResizeComplete={onResizeComplete}
       theme={theme}
+      scrollbackLines={scrollbackLines}
     />
   );
 }
@@ -102,6 +106,7 @@ function SplitNode({
   onPaneFocus,
   onResizeComplete,
   theme,
+  scrollbackLines,
 }: {
   node: LayoutSplit;
   wsRef: React.RefObject<WebSocket | null>;
@@ -112,6 +117,7 @@ function SplitNode({
     | ((splitNode: LayoutSplit, newSizes: number[]) => void)
     | undefined;
   theme?: TerminalTheme | null | undefined;
+  scrollbackLines?: number | undefined;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [resizeState, setResizeState] = useState<ResizeState | null>(null);
@@ -252,6 +258,7 @@ function SplitNode({
           onPaneFocus={onPaneFocus}
           onResizeComplete={onResizeComplete}
           theme={theme}
+          scrollbackLines={scrollbackLines}
         />
       </div>
     );

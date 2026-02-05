@@ -2,7 +2,7 @@
  * REST API client for Webmux.
  */
 
-import type { ShortcutsConfig, AppearanceConfig } from "../../shared/config";
+import type { ShortcutsConfig, AppearanceConfig, TerminalConfig } from "../../shared/config";
 import type { TerminalTheme } from "../../shared/theme";
 
 interface LoginResponse {
@@ -136,6 +136,7 @@ export async function deleteTab(tabId: string): Promise<boolean> {
 interface ClientConfig {
   shortcuts: ShortcutsConfig;
   appearance: AppearanceConfig;
+  terminal: TerminalConfig;
 }
 
 /**
