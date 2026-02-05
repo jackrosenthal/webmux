@@ -159,7 +159,7 @@ Each step corresponds to a single commit.  Steps should be completed in order.
 
 - [x] **14.1** Add xterm-addon-web-links for clickable URLs in terminal output
 
-- [ ] **14.2** Handle WebSocket disconnection gracefully, show reconnecting
+- [x] **14.2** Handle WebSocket disconnection gracefully, show reconnecting
        indicator, auto-reconnect with exponential backoff
 
 - [ ] **14.3** Add error handling and user-friendly error messages throughout

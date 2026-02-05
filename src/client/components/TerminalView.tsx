@@ -23,7 +23,7 @@ import { DEFAULT_CONFIG } from "../../shared/config";
  * Renders the tab bar and terminal for the current focused pane.
  */
 export function TerminalView() {
-  const { session, wsRef, loading, error } = useSession();
+  const { session, wsRef, loading, error, connectionStatus } = useSession();
   const { theme, themes, selectedThemeName, setTheme } = useTheme();
   const [focusedPaneId, setFocusedPaneId] = useState<string | null>(null);
   const [shortcutsConfig, setShortcutsConfig] = useState<
@@ -191,6 +191,14 @@ export function TerminalView() {
           scrollbackLines={terminalConfig.scrollback_lines}
         />
       </div>
+      {connectionStatus === "reconnecting" && (
+        <div className="reconnecting-overlay">
+          <div className="reconnecting-indicator">
+            <div className="reconnecting-spinner" />
+            <span>Reconnecting...</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

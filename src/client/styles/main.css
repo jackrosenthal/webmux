@@ -311,3 +311,41 @@ body.resizing-vertical *,
 body.resizing-horizontal * {
   cursor: inherit !important;
 }
+
+/* Reconnecting overlay */
+.reconnecting-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.reconnecting-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
+  background: #2d2d2d;
+  border-radius: 8px;
+  border: 1px solid #444;
+  color: #f0f0f0;
+  font-size: 0.9rem;
+}
+
+.reconnecting-spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid #444;
+  border-top-color: #4a9eff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
