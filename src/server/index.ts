@@ -9,7 +9,9 @@ import { createAuthMiddleware } from "./auth/middleware.js";
 import {
   createWebSocketHandlers,
   authenticateWebSocket,
+  broadcastToAll,
 } from "./ws/terminal.js";
+import { sessionStore } from "./session/store.js";
 import type { WebmuxConfig } from "../shared/config.js";
 import { panesRoutes } from "./api/panes.js";
 import { sessionRoutes } from "./api/session.js";
@@ -51,6 +53,11 @@ console.log(`Webmux server listening on http://localhost:${port}`);
 
 // Create WebSocket handlers
 const wsHandlers = createWebSocketHandlers(jwtSecret);
+
+// Subscribe to session state changes and broadcast to all clients
+sessionStore.subscribe((state) => {
+  broadcastToAll({ type: "sessionSync", state });
+});
 
 export default {
   port,

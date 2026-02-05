@@ -46,6 +46,18 @@ export interface ServerExitMessage {
 }
 
 /**
+ * Message from server to client: session state sync.
+ * Sent when the session state changes (tab/pane added, deleted, etc.).
+ */
+export interface ServerSessionSyncMessage {
+  type: "sessionSync";
+  state: import("./types").SessionState;
+}
+
+/**
  * All possible server-to-client messages.
  */
-export type ServerMessage = ServerOutputMessage | ServerExitMessage;
+export type ServerMessage =
+  | ServerOutputMessage
+  | ServerExitMessage
+  | ServerSessionSyncMessage;

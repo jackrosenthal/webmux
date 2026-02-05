@@ -279,3 +279,16 @@ export function createWebSocketHandlers(jwtSecret: string) {
 export function getConnectedClientCount(): number {
   return connectedClients.size;
 }
+
+/**
+ * Broadcasts a message to all connected authenticated clients.
+ * Used for session state sync.
+ */
+export function broadcastToAll(message: ServerMessage): void {
+  const messageStr = JSON.stringify(message);
+  for (const client of connectedClients) {
+    if (client.data.authenticated) {
+      client.send(messageStr);
+    }
+  }
+}

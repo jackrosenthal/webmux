@@ -109,9 +109,9 @@ export function Terminal({ paneId, wsRef }: TerminalProps) {
 
     const handleMessage = (event: MessageEvent) => {
       const message: ServerMessage = JSON.parse(event.data);
-      if (message.paneId !== paneId) return;
 
-      if (message.type === "output" && xtermRef.current) {
+      // Only handle output messages for this pane
+      if (message.type === "output" && message.paneId === paneId && xtermRef.current) {
         xtermRef.current.write(message.data);
       }
     };

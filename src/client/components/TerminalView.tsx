@@ -1,34 +1,24 @@
-import { useEffect, useRef, useState } from "react";
 import { Terminal } from "./Terminal";
-import { createPane } from "../services/api";
-import { createTerminalWebSocket } from "../services/ws";
+import { useSession } from "../hooks/useSession";
 
 /**
- * TerminalView manages WebSocket connection and pane lifecycle.
- * For Phase 4, this creates a single pane on mount.
+ * TerminalView manages WebSocket connection and session state.
+ * Renders the terminal for the current focused pane.
  */
 export function TerminalView() {
-  const [paneId, setPaneId] = useState<string | null>(null);
-  const wsRef = useRef<WebSocket | null>(null);
+  const { session, wsRef, loading, error } = useSession();
 
-  useEffect(() => {
-    const ws = createTerminalWebSocket();
-    wsRef.current = ws;
-
-    ws.addEventListener("open", async () => {
-      const id = await createPane();
-      setPaneId(id);
-    });
-
-    return () => {
-      ws.close();
-      wsRef.current = null;
-    };
-  }, []);
-
-  if (!paneId) {
+  if (loading) {
     return <div className="terminal-loading">Connecting...</div>;
   }
 
-  return <Terminal paneId={paneId} wsRef={wsRef} />;
+  if (error) {
+    return <div className="terminal-error">{error}</div>;
+  }
+
+  if (!session || !session.focusedPaneId) {
+    return <div className="terminal-loading">No active pane</div>;
+  }
+
+  return <Terminal paneId={session.focusedPaneId} wsRef={wsRef} />;
 }

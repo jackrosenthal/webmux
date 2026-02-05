@@ -58,7 +58,7 @@ Each step corresponds to a single commit.  Steps should be completed in order.
 - [x] **5.2** Implement `/api/session` GET endpoint that returns current session
       state, initialize with single tab containing single pane on first connect
 
-- [ ] **5.3** Broadcast session state changes to all connected WebSocket clients,
+- [x] **5.3** Broadcast session state changes to all connected WebSocket clients,
       implement client-side state sync
 
 ## Phase 6: Tabs
