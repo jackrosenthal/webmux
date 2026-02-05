@@ -128,9 +128,9 @@ Each step corresponds to a single commit.  Steps should be completed in order.
 - [x] **11.2** Implement new tab, close tab, and kill pane shortcuts, ensure
        shortcuts don't interfere with terminal input
 
-- [ ] **11.3** Implement horizontal split and vertical split shortcuts
+- [x] **11.3** Implement horizontal split and vertical split shortcuts
 
-- [ ] **11.4** Implement copy and paste shortcuts using Clipboard API and xterm
+- [x] **11.4** Implement copy and paste shortcuts using Clipboard API and xterm
        selection
 
 ## Phase 12: Color Themes

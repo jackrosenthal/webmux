@@ -12,6 +12,7 @@ import {
   splitPane,
   getConfig,
 } from "../services/api";
+import { copyFromTerminal, pasteToTerminal } from "../services/terminalRegistry";
 import type { LayoutSplit } from "../../shared/types";
 import type { ShortcutsConfig } from "../../shared/config";
 
@@ -83,6 +84,18 @@ export function TerminalView() {
     }
   }, [focusedPaneId]);
 
+  const handleCopy = useCallback(() => {
+    if (focusedPaneId) {
+      copyFromTerminal(focusedPaneId);
+    }
+  }, [focusedPaneId]);
+
+  const handlePaste = useCallback(() => {
+    if (focusedPaneId) {
+      pasteToTerminal(focusedPaneId);
+    }
+  }, [focusedPaneId]);
+
   // Memoize shortcut handlers to avoid unnecessary re-renders
   const shortcutHandlers = useMemo(
     () => ({
@@ -91,8 +104,10 @@ export function TerminalView() {
       onKillPane: handleKillPane,
       onVerticalSplit: handleVerticalSplit,
       onHorizontalSplit: handleHorizontalSplit,
+      onCopy: handleCopy,
+      onPaste: handlePaste,
     }),
-    [handleNewTab, handleCloseTab, handleKillPane, handleVerticalSplit, handleHorizontalSplit]
+    [handleNewTab, handleCloseTab, handleKillPane, handleVerticalSplit, handleHorizontalSplit, handleCopy, handlePaste]
   );
 
   // Register keyboard shortcuts

@@ -2,6 +2,7 @@ import { useEffect, useRef, useCallback } from "react";
 import { Terminal as XTerm } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
 import type { ClientMessage, ServerMessage } from "../../shared/protocol";
+import { registerTerminal, unregisterTerminal } from "../services/terminalRegistry";
 import "@xterm/xterm/css/xterm.css";
 
 interface TerminalProps {
@@ -65,6 +66,9 @@ export function Terminal({ paneId, wsRef }: TerminalProps) {
     xtermRef.current = xterm;
     fitAddonRef.current = fitAddon;
 
+    // Register terminal for copy/paste operations
+    registerTerminal(paneId, xterm);
+
     // Send initial size to backend
     sendResize(wsRef.current, paneId, xterm.cols, xterm.rows);
 
@@ -81,6 +85,7 @@ export function Terminal({ paneId, wsRef }: TerminalProps) {
     });
 
     return () => {
+      unregisterTerminal(paneId);
       xterm.dispose();
       xtermRef.current = null;
       fitAddonRef.current = null;
