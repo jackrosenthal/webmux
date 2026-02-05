@@ -1,6 +1,7 @@
 import { useEffect, useRef, useCallback } from "react";
 import { Terminal as XTerm } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
+import { WebLinksAddon } from "@xterm/addon-web-links";
 import type { ClientMessage, ServerMessage } from "../../shared/protocol";
 import type { TerminalTheme } from "../../shared/theme";
 import { registerTerminal, unregisterTerminal } from "../services/terminalRegistry";
@@ -95,6 +96,9 @@ export function Terminal({ paneId, wsRef, theme, scrollbackLines }: TerminalProp
 
     const fitAddon = new FitAddon();
     xterm.loadAddon(fitAddon);
+
+    const webLinksAddon = new WebLinksAddon();
+    xterm.loadAddon(webLinksAddon);
 
     xterm.open(containerRef.current);
     fitAddon.fit();

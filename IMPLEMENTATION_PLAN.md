@@ -157,7 +157,7 @@ Each step corresponds to a single commit.  Steps should be completed in order.
 
 ## Phase 14: Polish
 
-- [ ] **14.1** Add xterm-addon-web-links for clickable URLs in terminal output
+- [x] **14.1** Add xterm-addon-web-links for clickable URLs in terminal output
 
 - [ ] **14.2** Handle WebSocket disconnection gracefully, show reconnecting
        indicator, auto-reconnect with exponential backoff
