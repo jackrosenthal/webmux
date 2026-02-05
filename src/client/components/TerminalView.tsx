@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useState, useEffect } from "react";
 import { SplitContainer } from "./SplitContainer";
 import { TabBar } from "./TabBar";
 import { useSession } from "../hooks/useSession";
@@ -11,6 +11,18 @@ import type { LayoutSplit } from "../../shared/types";
  */
 export function TerminalView() {
   const { session, wsRef, loading, error } = useSession();
+  const [focusedPaneId, setFocusedPaneId] = useState<string | null>(null);
+
+  // Sync focused pane from session state (e.g., when session updates from server)
+  useEffect(() => {
+    if (session?.focusedPaneId !== undefined) {
+      setFocusedPaneId(session.focusedPaneId);
+    }
+  }, [session?.focusedPaneId]);
+
+  const handlePaneFocus = useCallback((paneId: string) => {
+    setFocusedPaneId(paneId);
+  }, []);
 
   const handleTabSelect = useCallback((tabId: string) => {
     setActiveTab(tabId);
@@ -81,6 +93,8 @@ export function TerminalView() {
           node={activeTab.layout}
           wsRef={wsRef}
           panes={session.panes}
+          focusedPaneId={focusedPaneId}
+          onPaneFocus={handlePaneFocus}
           onResizeComplete={handleResizeComplete}
         />
       </div>

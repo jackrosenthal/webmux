@@ -10,6 +10,10 @@ interface SplitContainerProps {
   wsRef: React.RefObject<WebSocket | null>;
   /** Pane data for looking up titles */
   panes: Record<string, Pane>;
+  /** Currently focused pane ID */
+  focusedPaneId?: string | null | undefined;
+  /** Called when a pane receives focus (mouse enters) */
+  onPaneFocus?: ((paneId: string) => void) | undefined;
   /** Called when resize completes with the new sizes */
   onResizeComplete?:
     | ((splitNode: LayoutSplit, newSizes: number[]) => void)
@@ -39,6 +43,8 @@ export function SplitContainer({
   node,
   wsRef,
   panes,
+  focusedPaneId,
+  onPaneFocus,
   onResizeComplete,
 }: SplitContainerProps) {
   // For leaf nodes, render the title bar and terminal
@@ -50,8 +56,12 @@ export function SplitContainer({
       deletePane(node.paneId);
     }, [node.paneId]);
 
+    const handleMouseEnter = useCallback(() => {
+      onPaneFocus?.(node.paneId);
+    }, [node.paneId, onPaneFocus]);
+
     return (
-      <div className="split-leaf">
+      <div className="split-leaf" onMouseEnter={handleMouseEnter}>
         <PaneTitleBar title={title} onClose={handleClose} />
         <div className="pane-terminal-container">
           <Terminal paneId={node.paneId} wsRef={wsRef} />
@@ -66,6 +76,8 @@ export function SplitContainer({
       node={node}
       wsRef={wsRef}
       panes={panes}
+      focusedPaneId={focusedPaneId}
+      onPaneFocus={onPaneFocus}
       onResizeComplete={onResizeComplete}
     />
   );
@@ -79,11 +91,15 @@ function SplitNode({
   node,
   wsRef,
   panes,
+  focusedPaneId,
+  onPaneFocus,
   onResizeComplete,
 }: {
   node: LayoutSplit;
   wsRef: React.RefObject<WebSocket | null>;
   panes: Record<string, Pane>;
+  focusedPaneId?: string | null | undefined;
+  onPaneFocus?: ((paneId: string) => void) | undefined;
   onResizeComplete?:
     | ((splitNode: LayoutSplit, newSizes: number[]) => void)
     | undefined;
@@ -223,6 +239,8 @@ function SplitNode({
           node={child}
           wsRef={wsRef}
           panes={panes}
+          focusedPaneId={focusedPaneId}
+          onPaneFocus={onPaneFocus}
           onResizeComplete={onResizeComplete}
         />
       </div>

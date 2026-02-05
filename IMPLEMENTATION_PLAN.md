@@ -111,7 +111,7 @@ Each step corresponds to a single commit.  Steps should be completed in order.
 
 ## Phase 10: Focus Follows Mouse
 
-- [ ] **10.1** Track focused pane ID in client state, add mouse enter event to
+- [x] **10.1** Track focused pane ID in client state, add mouse enter event to
        terminal containers that updates focused pane
 
 - [ ] **10.2** Send focus change to backend, include focused pane ID in terminal
