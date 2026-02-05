@@ -52,7 +52,7 @@ Each step corresponds to a single commit.  Steps should be completed in order.
 
 ## Phase 5: Session State
 
-- [ ] **5.1** Create `SessionState` type in shared code defining tabs, panes,
+- [x] **5.1** Create `SessionState` type in shared code defining tabs, panes,
       and layout tree structure, implement in-memory session store on backend
 
 - [ ] **5.2** Implement `/api/session` GET endpoint that returns current session
