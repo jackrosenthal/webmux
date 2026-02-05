@@ -76,7 +76,7 @@ Each step corresponds to a single commit.  Steps should be completed in order.
 
 ## Phase 7: Pane Splitting
 
-- [ ] **7.1** Implement layout tree data structure supporting horizontal and
+- [x] **7.1** Implement layout tree data structure supporting horizontal and
       vertical splits, each leaf node references a pane ID
 
 - [ ] **7.2** Implement `/api/panes/:id/split` POST endpoint accepting direction
