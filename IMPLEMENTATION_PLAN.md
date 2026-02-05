@@ -138,7 +138,7 @@ Each step corresponds to a single commit.  Steps should be completed in order.
 - [x] **12.1** Fetch Gogh themes JSON at build time, transform to xterm.js theme
        format, bundle as static asset
 
-- [ ] **12.2** Create theme types, implement theme loader that merges bundled
+- [x] **12.2** Create theme types, implement theme loader that merges bundled
        themes with user themes from `~/.config/webmux/themes/`
 
 - [ ] **12.3** Apply theme to xterm.js instances, store selected theme in config,

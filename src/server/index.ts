@@ -17,6 +17,8 @@ import { panesRoutes } from "./api/panes.js";
 import { sessionRoutes } from "./api/session.js";
 import { tabsRoutes } from "./api/tabs.js";
 import { createConfigRoutes } from "./api/config.js";
+import { createThemeRoutes } from "./api/themes.js";
+import { loadAllThemes } from "./theme/loader.js";
 
 const app = new Hono();
 
@@ -24,6 +26,10 @@ const distDir = path.resolve(import.meta.dirname, "../../dist/client");
 
 // Load configuration
 const config: WebmuxConfig = await loadConfig();
+
+// Load themes (bundled + user themes)
+const themes = await loadAllThemes();
+console.log(`Loaded ${themes.length} themes`);
 
 // Generate JWT secret for this server instance
 const jwtSecret = generateJwtSecret();
@@ -44,6 +50,7 @@ app.route("/api/session", sessionRoutes);
 app.route("/api/tabs", tabsRoutes);
 app.route("/api/panes", panesRoutes);
 app.route("/api/config", createConfigRoutes(config.shortcuts));
+app.route("/api/themes", createThemeRoutes(themes));
 
 // Serve static files from Vite build output
 app.use("/*", serveStatic({ root: distDir }));
