@@ -12,6 +12,7 @@ import {
 } from "./ws/terminal.js";
 import type { WebmuxConfig } from "../shared/config.js";
 import { panesRoutes } from "./api/panes.js";
+import { sessionRoutes } from "./api/session.js";
 
 const app = new Hono();
 
@@ -35,6 +36,7 @@ app.use("/api/*", authMiddleware);
 
 // API routes
 app.get("/api/health", (c) => c.json({ status: "ok" }));
+app.route("/api/session", sessionRoutes);
 app.route("/api/panes", panesRoutes);
 
 // Serve static files from Vite build output

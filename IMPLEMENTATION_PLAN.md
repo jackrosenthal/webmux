@@ -55,7 +55,7 @@ Each step corresponds to a single commit.  Steps should be completed in order.
 - [x] **5.1** Create `SessionState` type in shared code defining tabs, panes,
       and layout tree structure, implement in-memory session store on backend
 
-- [ ] **5.2** Implement `/api/session` GET endpoint that returns current session
+- [x] **5.2** Implement `/api/session` GET endpoint that returns current session
       state, initialize with single tab containing single pane on first connect
 
 - [ ] **5.3** Broadcast session state changes to all connected WebSocket clients,
