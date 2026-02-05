@@ -201,11 +201,33 @@ body,
 }
 
 .pane-title {
+  flex: 1;
   font-size: 0.75rem;
   color: #999;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.pane-close-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border: none;
+  border-radius: 3px;
+  background: transparent;
+  color: #666;
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.pane-close-button:hover {
+  background: #3a3a3a;
+  color: #ff6b6b;
 }
 
 /* Resize handles */

@@ -3,6 +3,7 @@ import type { LayoutNode, LayoutSplit, Pane } from "../../shared/types";
 import { Terminal } from "./Terminal";
 import { ResizeHandle } from "./ResizeHandle";
 import { PaneTitleBar } from "./PaneTitleBar";
+import { deletePane } from "../services/api";
 
 interface SplitContainerProps {
   node: LayoutNode;
@@ -45,9 +46,13 @@ export function SplitContainer({
     const pane = panes[node.paneId];
     const title = pane?.title ?? "Terminal";
 
+    const handleClose = useCallback(() => {
+      deletePane(node.paneId);
+    }, [node.paneId]);
+
     return (
       <div className="split-leaf">
-        <PaneTitleBar title={title} />
+        <PaneTitleBar title={title} onClose={handleClose} />
         <div className="pane-terminal-container">
           <Terminal paneId={node.paneId} wsRef={wsRef} />
         </div>

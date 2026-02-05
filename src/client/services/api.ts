@@ -89,3 +89,13 @@ export async function resizePane(
   });
   return response.ok;
 }
+
+/**
+ * Delete a pane and its associated PTY.
+ */
+export async function deletePane(paneId: string): Promise<boolean> {
+  const response = await fetch(`/api/panes/${paneId}`, {
+    method: "DELETE",
+  });
+  return response.ok;
+}
