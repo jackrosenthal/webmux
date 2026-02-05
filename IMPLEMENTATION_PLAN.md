@@ -33,7 +33,7 @@ Each step corresponds to a single commit.  Steps should be completed in order.
 
 - [x] **3.3** Implement `/auth/logout` endpoint that clears the auth cookie
 
-- [ ] **3.4** Create login page UI in React, redirect to main app on successful
+- [x] **3.4** Create login page UI in React, redirect to main app on successful
       login, redirect to login page when unauthenticated
 
 ## Phase 4: Basic Terminal
