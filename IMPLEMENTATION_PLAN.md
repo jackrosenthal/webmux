@@ -135,7 +135,7 @@ Each step corresponds to a single commit.  Steps should be completed in order.
 
 ## Phase 12: Color Themes
 
-- [ ] **12.1** Fetch Gogh themes JSON at build time, transform to xterm.js theme
+- [x] **12.1** Fetch Gogh themes JSON at build time, transform to xterm.js theme
        format, bundle as static asset
 
 - [ ] **12.2** Create theme types, implement theme loader that merges bundled
