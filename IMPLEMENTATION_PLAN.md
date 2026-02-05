@@ -25,7 +25,7 @@ Each step corresponds to a single commit.  Steps should be completed in order.
 
 ## Phase 3: Authentication
 
-- [ ] **3.1** Implement `/auth/login` endpoint that validates password against
+- [x] **3.1** Implement `/auth/login` endpoint that validates password against
       config, returns JWT in HTTP-only cookie
 
 - [ ] **3.2** Implement `/auth/verify` endpoint and auth middleware that checks

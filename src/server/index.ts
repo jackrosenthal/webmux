@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { serveStatic } from "hono/bun";
 import path from "path";
 import { loadConfig } from "./config/loader.js";
+import { createAuthRoutes, generateJwtSecret } from "./auth/routes.js";
 import type { WebmuxConfig } from "../shared/config.js";
 
 const app = new Hono();
@@ -10,6 +11,12 @@ const distDir = path.resolve(import.meta.dirname, "../../dist/client");
 
 // Load configuration
 const config: WebmuxConfig = await loadConfig();
+
+// Generate JWT secret for this server instance
+const jwtSecret = generateJwtSecret();
+
+// Mount auth routes
+app.route("/auth", createAuthRoutes(config, jwtSecret));
 
 // API routes placeholder
 app.get("/api/health", (c) => c.json({ status: "ok" }));
