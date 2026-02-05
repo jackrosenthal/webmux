@@ -16,7 +16,7 @@ Each step corresponds to a single commit.  Steps should be completed in order.
 
 ## Phase 2: Configuration
 
-- [ ] **2.1** Create config types in `src/shared/config.ts`, implement TOML
+- [x] **2.1** Create config types in `src/shared/config.ts`, implement TOML
       config loader using smol-toml, load from `~/.config/webmux/config.toml`
       with fallback defaults
 
