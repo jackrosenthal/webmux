@@ -66,7 +66,7 @@ Each step corresponds to a single commit.  Steps should be completed in order.
 - [x] **6.1** Create `TabBar` component with tab buttons, active tab indicator,
       and new tab (+) button
 
-- [ ] **6.2** Implement `/api/tabs` POST endpoint to create new tab with single
+- [x] **6.2** Implement `/api/tabs` POST endpoint to create new tab with single
       pane, spawns new PTY
 
 - [ ] **6.3** Implement `/api/tabs/:id` DELETE endpoint to close tab, kills all
