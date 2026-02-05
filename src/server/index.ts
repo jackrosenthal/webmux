@@ -1,9 +1,15 @@
 import { Hono } from "hono";
 import { serveStatic } from "hono/bun";
 import path from "path";
+import type { Server } from "bun";
+import type { WebSocketData } from "./ws/terminal.js";
 import { loadConfig } from "./config/loader.js";
 import { createAuthRoutes, generateJwtSecret } from "./auth/routes.js";
 import { createAuthMiddleware } from "./auth/middleware.js";
+import {
+  createWebSocketHandlers,
+  authenticateWebSocket,
+} from "./ws/terminal.js";
 import type { WebmuxConfig } from "../shared/config.js";
 
 const app = new Hono();
@@ -22,9 +28,9 @@ const authMiddleware = createAuthMiddleware(jwtSecret);
 // Mount auth routes
 app.route("/auth", createAuthRoutes(config, jwtSecret));
 
-// Protect /api/* and /ws/* routes with auth middleware
+// Protect /api/* routes with auth middleware
+// Note: /ws/* is handled separately via WebSocket upgrade
 app.use("/api/*", authMiddleware);
-app.use("/ws/*", authMiddleware);
 
 // API routes placeholder
 app.get("/api/health", (c) => c.json({ status: "ok" }));
@@ -39,7 +45,36 @@ const port = config.server.port;
 
 console.log(`Webmux server listening on http://localhost:${port}`);
 
+// Create WebSocket handlers
+const wsHandlers = createWebSocketHandlers(jwtSecret);
+
 export default {
   port,
-  fetch: app.fetch,
+  async fetch(req: Request, server: Server<WebSocketData>): Promise<Response> {
+    const url = new URL(req.url);
+
+    // Handle WebSocket upgrade for /ws/terminal
+    if (url.pathname === "/ws/terminal") {
+      const authenticated = await authenticateWebSocket(req, jwtSecret);
+      if (!authenticated) {
+        return new Response("Unauthorized", { status: 401 });
+      }
+
+      const upgraded = server.upgrade(req, {
+        data: { authenticated: true },
+      });
+
+      if (!upgraded) {
+        return new Response("WebSocket upgrade failed", { status: 500 });
+      }
+
+      // Return undefined is not valid, but Bun expects no response for upgrades
+      // The upgrade was successful, Bun handles it from here
+      return undefined as unknown as Response;
+    }
+
+    // Handle all other requests with Hono
+    return app.fetch(req, { server });
+  },
+  websocket: wsHandlers,
 };

@@ -41,7 +41,7 @@ Each step corresponds to a single commit.  Steps should be completed in order.
 - [x] **4.1** Implement PTY spawning with node-pty, detect user's shell from
       `/etc/passwd`, create `PtyManager` class to track active PTYs
 
-- [ ] **4.2** Implement WebSocket endpoint `/ws/terminal` with Bun's native
+- [x] **4.2** Implement WebSocket endpoint `/ws/terminal` with Bun's native
       WebSocket, authenticate connection, multiplex messages by pane ID
 
 - [ ] **4.3** Add xterm.js and react-xtermjs to frontend, create `Terminal`
