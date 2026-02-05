@@ -82,7 +82,7 @@ Each step corresponds to a single commit.  Steps should be completed in order.
 - [x] **7.2** Implement `/api/panes/:id/split` POST endpoint accepting direction
       (h/v), creates new pane, updates layout tree, spawns new PTY
 
-- [ ] **7.3** Create `SplitContainer` React component that recursively renders
+- [x] **7.3** Create `SplitContainer` React component that recursively renders
       layout tree, positions panes using CSS flexbox
 
 - [ ] **7.4** Implement `/api/panes/:id` DELETE endpoint to kill single pane,

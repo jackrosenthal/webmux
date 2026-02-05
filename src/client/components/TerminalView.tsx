@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { Terminal } from "./Terminal";
+import { SplitContainer } from "./SplitContainer";
 import { TabBar } from "./TabBar";
 import { useSession } from "../hooks/useSession";
 import { setActiveTab, createTab } from "../services/api";
@@ -27,8 +27,13 @@ export function TerminalView() {
     return <div className="terminal-error">{error}</div>;
   }
 
-  if (!session || !session.focusedPaneId) {
+  if (!session) {
     return <div className="terminal-loading">No active pane</div>;
+  }
+
+  const activeTab = session.tabs.find((tab) => tab.id === session.activeTabId);
+  if (!activeTab) {
+    return <div className="terminal-loading">No active tab</div>;
   }
 
   return (
@@ -40,7 +45,7 @@ export function TerminalView() {
         onNewTab={handleNewTab}
       />
       <div className="terminal-area">
-        <Terminal paneId={session.focusedPaneId} wsRef={wsRef} />
+        <SplitContainer node={activeTab.layout} wsRef={wsRef} />
       </div>
     </div>
   );
