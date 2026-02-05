@@ -79,7 +79,7 @@ Each step corresponds to a single commit.  Steps should be completed in order.
 - [x] **7.1** Implement layout tree data structure supporting horizontal and
       vertical splits, each leaf node references a pane ID
 
-- [ ] **7.2** Implement `/api/panes/:id/split` POST endpoint accepting direction
+- [x] **7.2** Implement `/api/panes/:id/split` POST endpoint accepting direction
       (h/v), creates new pane, updates layout tree, spawns new PTY
 
 - [ ] **7.3** Create `SplitContainer` React component that recursively renders

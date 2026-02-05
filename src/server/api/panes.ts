@@ -1,11 +1,12 @@
 /**
  * Pane management API endpoints.
- * Minimal implementation for Phase 4 - will be expanded in Phase 7.
  */
 
 import { Hono } from "hono";
 import { ptyManager } from "../pty/manager.js";
 import { attachPtyToWebSocket } from "../ws/terminal.js";
+import { sessionStore } from "../session/store.js";
+import type { SplitDirection } from "../../shared/types.js";
 
 const app = new Hono();
 
@@ -18,6 +19,34 @@ app.post("/", (c) => {
   ptyManager.spawn(paneId);
   attachPtyToWebSocket(paneId);
   return c.json({ paneId });
+});
+
+/**
+ * POST /api/panes/:id/split - Split a pane horizontally or vertically.
+ * Creates a new pane next to the specified pane.
+ * Body: { direction: "horizontal" | "vertical" }
+ */
+app.post("/:id/split", async (c) => {
+  const paneId = c.req.param("id");
+  const body = await c.req.json<{ direction?: string }>();
+
+  // Validate direction
+  const direction = body.direction;
+  if (direction !== "horizontal" && direction !== "vertical") {
+    return c.json({ error: "Invalid direction. Must be 'horizontal' or 'vertical'." }, 400);
+  }
+
+  // Split the pane in the session store
+  const newPane = sessionStore.splitPane(paneId, direction as SplitDirection);
+  if (!newPane) {
+    return c.json({ error: "Pane not found" }, 404);
+  }
+
+  // Spawn PTY for the new pane
+  ptyManager.spawn(newPane.id);
+  attachPtyToWebSocket(newPane.id);
+
+  return c.json({ pane: newPane });
 });
 
 /**
