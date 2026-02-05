@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "pnpm": {
+    "onlyBuiltDependencies": ["node-pty", "esbuild"]
+  },
   "scripts": {
     "dev": "concurrently -n server,client -c blue,green \"bun --watch src/server/index.ts\" \"vite\"",
     "dev:server": "bun --watch src/server/index.ts",
@@ -12,6 +15,7 @@
   },
   "dependencies": {
     "hono": "^4.11.7",
+    "node-pty": "^1.1.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "smol-toml": "^1.6.0"

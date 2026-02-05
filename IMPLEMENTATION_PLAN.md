@@ -38,7 +38,7 @@ Each step corresponds to a single commit.  Steps should be completed in order.
 
 ## Phase 4: Basic Terminal
 
-- [ ] **4.1** Implement PTY spawning with node-pty, detect user's shell from
+- [x] **4.1** Implement PTY spawning with node-pty, detect user's shell from
       `/etc/passwd`, create `PtyManager` class to track active PTYs
 
 - [ ] **4.2** Implement WebSocket endpoint `/ws/terminal` with Bun's native
