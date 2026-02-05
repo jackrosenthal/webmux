@@ -6,12 +6,19 @@
   "scripts": {
     "dev": "echo 'TODO: Add dev script'",
     "build": "echo 'TODO: Add build script'",
-    "typecheck": "bunx --bun tsc --noEmit -p tsconfig.server.json && bunx --bun tsc --noEmit -p tsconfig.client.json"
+    "typecheck": "bun --bun tsc --noEmit -p tsconfig.server.json && bun --bun tsc --noEmit -p tsconfig.client.json"
   },
-  "dependencies": {},
+  "dependencies": {
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4"
+  },
   "devDependencies": {
     "@types/node": "^22.0.0",
+    "@types/react": "^19.2.13",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.1.3",
     "bun-types": "^1.3.8",
-    "typescript": "^5.7.0"
+    "typescript": "^5.7.0",
+    "vite": "^7.3.1"
   }
 }

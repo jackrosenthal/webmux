@@ -8,7 +8,7 @@ Each step corresponds to a single commit.  Steps should be completed in order.
       config for both frontend and backend, create basic directory structure
       (`src/server/`, `src/client/`, `src/shared/`)
 
-- [ ] **1.2** Set up Vite for frontend with React and TypeScript, create minimal
+- [x] **1.2** Set up Vite for frontend with React and TypeScript, create minimal
       `index.html` and `App.tsx` that renders "Hello Webmux"
 
 - [ ] **1.3** Set up Bun + Hono backend server, serve static files from Vite
