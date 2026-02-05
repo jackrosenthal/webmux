@@ -5,7 +5,7 @@
 
 import { Hono } from "hono";
 import { sign, verify } from "hono/jwt";
-import { setCookie, getCookie } from "hono/cookie";
+import { setCookie, getCookie, deleteCookie } from "hono/cookie";
 import { timingSafeEqual } from "crypto";
 import type { WebmuxConfig } from "../../shared/config.js";
 import { AUTH_COOKIE_NAME } from "./middleware.js";
@@ -92,6 +92,14 @@ export function createAuthRoutes(config: WebmuxConfig, jwtSecret: string) {
     } catch {
       return c.json({ authenticated: false }, 401);
     }
+  });
+
+  auth.post("/logout", (c) => {
+    deleteCookie(c, AUTH_COOKIE_NAME, {
+      path: "/",
+    });
+
+    return c.json({ success: true });
   });
 
   return auth;

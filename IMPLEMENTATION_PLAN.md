@@ -31,7 +31,7 @@ Each step corresponds to a single commit.  Steps should be completed in order.
 - [x] **3.2** Implement `/auth/verify` endpoint and auth middleware that checks
       JWT cookie, protects all `/api/*` and `/ws/*` routes
 
-- [ ] **3.3** Implement `/auth/logout` endpoint that clears the auth cookie
+- [x] **3.3** Implement `/auth/logout` endpoint that clears the auth cookie
 
 - [ ] **3.4** Create login page UI in React, redirect to main app on successful
       login, redirect to login page when unauthenticated
