@@ -72,7 +72,7 @@ Each step corresponds to a single commit.  Steps should be completed in order.
 - [x] **6.3** Implement `/api/tabs/:id` DELETE endpoint to close tab, kills all
       PTYs in tab, handles "last tab" case (create new empty tab)
 
-- [ ] **6.4** Wire up tab switching in UI, persist active tab in session state
+- [x] **6.4** Wire up tab switching in UI, persist active tab in session state
 
 ## Phase 7: Pane Splitting
 

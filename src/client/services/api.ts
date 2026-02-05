@@ -55,3 +55,21 @@ export async function createPane(): Promise<string> {
   const data: CreatePaneResponse = await response.json();
   return data.paneId;
 }
+
+/**
+ * Set the active tab.
+ */
+export async function setActiveTab(tabId: string): Promise<boolean> {
+  const response = await fetch(`/api/tabs/${tabId}/activate`, {
+    method: "PATCH",
+  });
+  return response.ok;
+}
+
+/**
+ * Create a new tab with a single pane.
+ */
+export async function createTab(): Promise<boolean> {
+  const response = await fetch("/api/tabs", { method: "POST" });
+  return response.ok;
+}

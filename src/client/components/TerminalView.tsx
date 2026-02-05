@@ -2,6 +2,7 @@ import { useCallback } from "react";
 import { Terminal } from "./Terminal";
 import { TabBar } from "./TabBar";
 import { useSession } from "../hooks/useSession";
+import { setActiveTab, createTab } from "../services/api";
 
 /**
  * TerminalView manages WebSocket connection and session state.
@@ -11,13 +12,11 @@ export function TerminalView() {
   const { session, wsRef, loading, error } = useSession();
 
   const handleTabSelect = useCallback((tabId: string) => {
-    // TODO: Implement tab switching via API in step 6.4
-    console.log("Tab selected:", tabId);
+    setActiveTab(tabId);
   }, []);
 
   const handleNewTab = useCallback(() => {
-    // TODO: Implement new tab creation via API in step 6.2
-    console.log("New tab requested");
+    createTab();
   }, []);
 
   if (loading) {

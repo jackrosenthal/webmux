@@ -116,7 +116,7 @@ export class SessionStore {
   }
 
   /**
-   * Sets the active tab.
+   * Sets the active tab and focuses its first pane.
    */
   setActiveTab(tabId: string): boolean {
     if (!this.state) return false;
@@ -124,6 +124,7 @@ export class SessionStore {
     if (!tab) return false;
 
     this.state.activeTabId = tabId;
+    this.state.focusedPaneId = this.getFirstPaneId(tab.layout);
     this.notify();
     return true;
   }

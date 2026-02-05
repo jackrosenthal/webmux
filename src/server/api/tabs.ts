@@ -32,6 +32,21 @@ app.post("/", (c) => {
 });
 
 /**
+ * PATCH /api/tabs/:id/activate - Set the active tab.
+ * Updates the session to focus this tab and its first pane.
+ */
+app.patch("/:id/activate", (c) => {
+  const tabId = c.req.param("id");
+  const success = sessionStore.setActiveTab(tabId);
+
+  if (!success) {
+    return c.json({ error: "Tab not found" }, 404);
+  }
+
+  return c.json({ success: true });
+});
+
+/**
  * DELETE /api/tabs/:id - Close a tab.
  * Kills all PTYs in the tab.
  * If this was the last tab, creates a new empty tab.
