@@ -202,6 +202,28 @@ function handleMessage(
       sessionStore.setFocusedPane(parsed.paneId);
       break;
     }
+
+    case "subscribe": {
+      // Subscribe the client to the pane and send buffered scrollback
+      const subscribers = paneSubscribers.get(parsed.paneId);
+      const alreadySubscribed = subscribers?.has(ws) ?? false;
+
+      subscribeToPty(ws, parsed.paneId);
+
+      // Only send scrollback if this is a new subscription
+      if (!alreadySubscribed) {
+        const scrollback = ptyManager.getScrollback(parsed.paneId);
+        if (scrollback) {
+          const replayMessage: ServerMessage = {
+            type: "output",
+            paneId: parsed.paneId,
+            data: scrollback,
+          };
+          ws.send(JSON.stringify(replayMessage));
+        }
+      }
+      break;
+    }
   }
 }
 
@@ -209,6 +231,7 @@ function handleMessage(
  * Sets up PTY output listeners to forward data to WebSocket clients.
  * Call this when a PTY is spawned to wire up the output.
  * Also parses OSC escape sequences to extract and update pane titles.
+ * Buffers output for scrollback replay on reconnect.
  */
 export function attachPtyToWebSocket(paneId: string): void {
   const pty = ptyManager.get(paneId);
@@ -217,6 +240,9 @@ export function attachPtyToWebSocket(paneId: string): void {
   const oscParser = new OscTitleParser();
 
   pty.onData((data: string) => {
+    // Buffer output for scrollback replay
+    ptyManager.appendToScrollback(paneId, data);
+
     // Parse OSC escape sequences for title changes
     const title = oscParser.process(data);
     if (title !== null) {

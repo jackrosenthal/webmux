@@ -34,6 +34,19 @@ function sendResize(
 }
 
 /**
+ * Sends a subscribe message to request scrollback replay and live output.
+ */
+function sendSubscribe(ws: WebSocket | null, paneId: string): void {
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    const message: ClientMessage = {
+      type: "subscribe",
+      paneId,
+    };
+    ws.send(JSON.stringify(message));
+  }
+}
+
+/**
  * Converts TerminalTheme to xterm.js ITheme format (excludes name).
  */
 function toXtermTheme(theme: TerminalTheme): Omit<TerminalTheme, "name"> {
@@ -156,6 +169,27 @@ export function Terminal({ paneId, wsRef, theme, scrollbackLines }: TerminalProp
     ws.addEventListener("message", handleMessage);
     return () => {
       ws.removeEventListener("message", handleMessage);
+    };
+  }, [paneId, wsRef]);
+
+  // Subscribe to the pane to receive scrollback replay and live output
+  useEffect(() => {
+    const ws = wsRef.current;
+    if (!ws) return;
+
+    // If WebSocket is already open, subscribe immediately
+    if (ws.readyState === WebSocket.OPEN) {
+      sendSubscribe(ws, paneId);
+    }
+
+    // Also subscribe when WebSocket opens (handles reconnect case)
+    const handleOpen = () => {
+      sendSubscribe(ws, paneId);
+    };
+
+    ws.addEventListener("open", handleOpen);
+    return () => {
+      ws.removeEventListener("open", handleOpen);
     };
   }, [paneId, wsRef]);
 

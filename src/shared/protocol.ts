@@ -32,12 +32,23 @@ export interface ClientFocusMessage {
 }
 
 /**
+ * Message from client to server: subscribe to pane output.
+ * Requests to receive terminal output for a pane.
+ * The server will replay any buffered scrollback before sending live output.
+ */
+export interface ClientSubscribeMessage {
+  type: "subscribe";
+  paneId: string;
+}
+
+/**
  * All possible client-to-server messages.
  */
 export type ClientMessage =
   | ClientInputMessage
   | ClientResizeMessage
-  | ClientFocusMessage;
+  | ClientFocusMessage
+  | ClientSubscribeMessage;
 
 /**
  * Message from server to client: terminal output data.
