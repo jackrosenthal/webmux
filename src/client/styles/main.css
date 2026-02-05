@@ -204,3 +204,25 @@ body,
   height: 4px;
   cursor: row-resize;
 }
+
+/* Active resize handle */
+.resize-handle-active {
+  background: #4a9eff;
+}
+
+/* During resize, prevent text selection and maintain cursor */
+body.resizing-vertical {
+  cursor: col-resize;
+  user-select: none;
+}
+
+body.resizing-horizontal {
+  cursor: row-resize;
+  user-select: none;
+}
+
+/* Ensure cursor persists over all elements during drag */
+body.resizing-vertical *,
+body.resizing-horizontal * {
+  cursor: inherit !important;
+}

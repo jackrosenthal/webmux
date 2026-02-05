@@ -93,7 +93,7 @@ Each step corresponds to a single commit.  Steps should be completed in order.
 - [x] **8.1** Add resize handles between panes in `SplitContainer`, track split
       ratios in layout tree nodes
 
-- [ ] **8.2** Implement drag-to-resize with mouse events, update split ratios
+- [x] **8.2** Implement drag-to-resize with mouse events, update split ratios
       locally during drag for responsiveness
 
 - [ ] **8.3** Implement `/api/panes/:id/resize` PATCH endpoint to persist new

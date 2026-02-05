@@ -4,8 +4,8 @@ interface ResizeHandleProps {
   direction: SplitDirection;
   /** Index of the resize handle (between child index and index+1) */
   index: number;
-  /** Called when drag starts */
-  onResizeStart: (index: number) => void;
+  /** Called when drag starts - receives the mouse event */
+  onResizeStart: (e: React.MouseEvent) => void;
 }
 
 /**
@@ -15,20 +15,15 @@ interface ResizeHandleProps {
  */
 export function ResizeHandle({
   direction,
-  index,
+  index: _index,
   onResizeStart,
 }: ResizeHandleProps) {
   const isHorizontal = direction === "horizontal";
 
-  const handleMouseDown = (e: React.MouseEvent) => {
-    e.preventDefault();
-    onResizeStart(index);
-  };
-
   return (
     <div
       className={`resize-handle ${isHorizontal ? "resize-handle-horizontal" : "resize-handle-vertical"}`}
-      onMouseDown={handleMouseDown}
+      onMouseDown={onResizeStart}
     />
   );
 }

@@ -1,3 +1,4 @@
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { LayoutNode, LayoutSplit } from "../../shared/types";
 import { Terminal } from "./Terminal";
 import { ResizeHandle } from "./ResizeHandle";
@@ -5,12 +6,24 @@ import { ResizeHandle } from "./ResizeHandle";
 interface SplitContainerProps {
   node: LayoutNode;
   wsRef: React.RefObject<WebSocket | null>;
-  /** Called when a resize handle is dragged (to be implemented in 8.2) */
-  onResize?: (
-    splitNode: LayoutSplit,
-    handleIndex: number,
-    delta: number
-  ) => void;
+  /** Called when resize completes with the new sizes */
+  onResizeComplete?:
+    | ((splitNode: LayoutSplit, newSizes: number[]) => void)
+    | undefined;
+}
+
+/**
+ * State for tracking an active resize operation.
+ */
+interface ResizeState {
+  /** Index of the handle being dragged (between child index and index+1) */
+  handleIndex: number;
+  /** Starting mouse position (x for vertical split, y for horizontal) */
+  startPosition: number;
+  /** Original sizes at the start of the drag */
+  originalSizes: number[];
+  /** Container size in pixels at the start of the drag */
+  containerSize: number;
 }
 
 /**
@@ -18,7 +31,12 @@ interface SplitContainerProps {
  * - Leaf nodes render a Terminal component
  * - Split nodes render a flex container with children and resize handles
  */
-export function SplitContainer({ node, wsRef, onResize }: SplitContainerProps) {
+export function SplitContainer({
+  node,
+  wsRef,
+  onResizeComplete,
+}: SplitContainerProps) {
+  // For leaf nodes, just render the terminal
   if (node.type === "leaf") {
     return (
       <div className="split-leaf">
@@ -27,22 +45,153 @@ export function SplitContainer({ node, wsRef, onResize }: SplitContainerProps) {
     );
   }
 
-  // Split node: render children in a flex container with resize handles between them
+  // For split nodes, we need resize handling
+  return (
+    <SplitNode
+      node={node}
+      wsRef={wsRef}
+      onResizeComplete={onResizeComplete}
+    />
+  );
+}
+
+/**
+ * SplitNode handles the resize logic for a split container.
+ * Separated from SplitContainer to use hooks at the split level.
+ */
+function SplitNode({
+  node,
+  wsRef,
+  onResizeComplete,
+}: {
+  node: LayoutSplit;
+  wsRef: React.RefObject<WebSocket | null>;
+  onResizeComplete?:
+    | ((splitNode: LayoutSplit, newSizes: number[]) => void)
+    | undefined;
+}) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [resizeState, setResizeState] = useState<ResizeState | null>(null);
+  const [localSizes, setLocalSizes] = useState<number[] | null>(null);
+
   const isHorizontal = node.direction === "horizontal";
 
-  const handleResizeStart = (handleIndex: number) => {
-    // Resize start handling will be implemented in 8.2
-    // For now, just log the event
-    console.log(`Resize started: handle ${handleIndex} in ${node.direction} split`);
-  };
+  // Use local sizes during drag, otherwise use node sizes
+  const sizes = localSizes ?? node.sizes;
+
+  const handleResizeStart = useCallback(
+    (handleIndex: number, startX: number, startY: number) => {
+      if (!containerRef.current) return;
+
+      const rect = containerRef.current.getBoundingClientRect();
+      const containerSize = isHorizontal ? rect.height : rect.width;
+
+      // Account for resize handles (4px each)
+      const handleCount = node.children.length - 1;
+      const handleTotalSize = handleCount * 4;
+      const adjustedContainerSize = containerSize - handleTotalSize;
+
+      setResizeState({
+        handleIndex,
+        startPosition: isHorizontal ? startY : startX,
+        originalSizes: [...node.sizes],
+        containerSize: adjustedContainerSize,
+      });
+
+      // Initialize local sizes from current node sizes
+      setLocalSizes([...node.sizes]);
+    },
+    [isHorizontal, node.children.length, node.sizes]
+  );
+
+  // Handle mouse move during drag
+  useEffect(() => {
+    if (!resizeState) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const currentPosition = isHorizontal ? e.clientY : e.clientX;
+      const delta = currentPosition - resizeState.startPosition;
+      const deltaRatio = delta / resizeState.containerSize;
+
+      // Calculate new sizes for the two adjacent children
+      const { handleIndex, originalSizes } = resizeState;
+      const newSizes = [...originalSizes];
+
+      // Adjust the sizes of the children on either side of the handle
+      const minSize = 0.05; // Minimum 5% for each pane
+      const leftOriginal = originalSizes[handleIndex] ?? 0.5;
+      const rightOriginal = originalSizes[handleIndex + 1] ?? 0.5;
+      let leftNewSize = leftOriginal + deltaRatio;
+      let rightNewSize = rightOriginal - deltaRatio;
+
+      // Clamp to minimum sizes
+      if (leftNewSize < minSize) {
+        const adjustment = minSize - leftNewSize;
+        leftNewSize = minSize;
+        rightNewSize -= adjustment;
+      }
+      if (rightNewSize < minSize) {
+        const adjustment = minSize - rightNewSize;
+        rightNewSize = minSize;
+        leftNewSize -= adjustment;
+      }
+
+      // Final clamp after adjustments
+      leftNewSize = Math.max(minSize, leftNewSize);
+      rightNewSize = Math.max(minSize, rightNewSize);
+
+      newSizes[handleIndex] = leftNewSize;
+      newSizes[handleIndex + 1] = rightNewSize;
+
+      setLocalSizes(newSizes);
+    };
+
+    const handleMouseUp = () => {
+      if (localSizes && onResizeComplete) {
+        onResizeComplete(node, localSizes);
+      }
+      setResizeState(null);
+      setLocalSizes(null);
+    };
+
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp);
+
+    return () => {
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [resizeState, isHorizontal, localSizes, node, onResizeComplete]);
+
+  // Add body class during resize to prevent text selection and show cursor
+  useEffect(() => {
+    if (resizeState) {
+      document.body.classList.add(
+        isHorizontal ? "resizing-horizontal" : "resizing-vertical"
+      );
+    } else {
+      document.body.classList.remove("resizing-horizontal", "resizing-vertical");
+    }
+
+    return () => {
+      document.body.classList.remove("resizing-horizontal", "resizing-vertical");
+    };
+  }, [resizeState, isHorizontal]);
+
+  const onHandleMouseDown = useCallback(
+    (handleIndex: number) => (e: React.MouseEvent) => {
+      e.preventDefault();
+      handleResizeStart(handleIndex, e.clientX, e.clientY);
+    },
+    [handleResizeStart]
+  );
 
   // Build interleaved children and handles
   const elements: React.ReactNode[] = [];
 
   node.children.forEach((child, index) => {
-    const size = node.sizes[index] ?? 1 / node.children.length;
-    const childKey =
-      child.type === "leaf" ? child.paneId : `split-${index}`;
+    const size = sizes[index] ?? 1 / node.children.length;
+    const childKey = child.type === "leaf" ? child.paneId : `split-${index}`;
 
     elements.push(
       <div
@@ -52,7 +201,11 @@ export function SplitContainer({ node, wsRef, onResize }: SplitContainerProps) {
           flex: `${size} ${size} 0%`,
         }}
       >
-        <SplitContainer node={child} wsRef={wsRef} onResize={onResize} />
+        <SplitContainer
+          node={child}
+          wsRef={wsRef}
+          onResizeComplete={onResizeComplete}
+        />
       </div>
     );
 
@@ -63,7 +216,7 @@ export function SplitContainer({ node, wsRef, onResize }: SplitContainerProps) {
           key={`handle-${index}`}
           direction={node.direction}
           index={index}
-          onResizeStart={handleResizeStart}
+          onResizeStart={onHandleMouseDown(index)}
         />
       );
     }
@@ -71,6 +224,7 @@ export function SplitContainer({ node, wsRef, onResize }: SplitContainerProps) {
 
   return (
     <div
+      ref={containerRef}
       className="split-container"
       style={{
         flexDirection: isHorizontal ? "column" : "row",
