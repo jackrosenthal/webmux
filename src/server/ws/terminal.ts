@@ -8,6 +8,8 @@ import { verify } from "hono/jwt";
 import { ptyManager } from "../pty/manager.js";
 import type { ClientMessage, ServerMessage } from "../../shared/protocol.js";
 import { AUTH_COOKIE_NAME } from "../auth/middleware.js";
+import { OscTitleParser } from "../pty/osc-parser.js";
+import { sessionStore } from "../session/store.js";
 
 /**
  * Data attached to each WebSocket connection.
@@ -200,12 +202,21 @@ function handleMessage(
 /**
  * Sets up PTY output listeners to forward data to WebSocket clients.
  * Call this when a PTY is spawned to wire up the output.
+ * Also parses OSC escape sequences to extract and update pane titles.
  */
 export function attachPtyToWebSocket(paneId: string): void {
   const pty = ptyManager.get(paneId);
   if (!pty) return;
 
+  const oscParser = new OscTitleParser();
+
   pty.onData((data: string) => {
+    // Parse OSC escape sequences for title changes
+    const title = oscParser.process(data);
+    if (title !== null) {
+      sessionStore.setPaneTitle(paneId, title);
+    }
+
     broadcastToPane(paneId, {
       type: "output",
       paneId,

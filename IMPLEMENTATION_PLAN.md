@@ -104,7 +104,7 @@ Each step corresponds to a single commit.  Steps should be completed in order.
 - [x] **9.1** Create `PaneTitleBar` component displaying pane title, add to each
       terminal pane
 
-- [ ] **9.2** Parse terminal title escape sequences (OSC 0/1/2) in PTY output,
+- [x] **9.2** Parse terminal title escape sequences (OSC 0/1/2) in PTY output,
       update pane title in session state, default to shell name
 
 - [ ] **9.3** Add close (X) button to title bar, wire up to pane delete endpoint
