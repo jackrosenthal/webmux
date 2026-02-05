@@ -4,12 +4,11 @@
  */
 
 import { Hono } from "hono";
-import { sign } from "hono/jwt";
-import { setCookie } from "hono/cookie";
+import { sign, verify } from "hono/jwt";
+import { setCookie, getCookie } from "hono/cookie";
 import { timingSafeEqual } from "crypto";
 import type { WebmuxConfig } from "../../shared/config.js";
-
-const AUTH_COOKIE_NAME = "webmux_auth";
+import { AUTH_COOKIE_NAME } from "./middleware.js";
 
 /**
  * Generates a cryptographically secure random secret for JWT signing.
@@ -73,6 +72,26 @@ export function createAuthRoutes(config: WebmuxConfig, jwtSecret: string) {
     });
 
     return c.json({ success: true });
+  });
+
+  auth.get("/verify", async (c) => {
+    const token = getCookie(c, AUTH_COOKIE_NAME);
+
+    if (!token) {
+      return c.json({ authenticated: false }, 401);
+    }
+
+    try {
+      const payload = await verify(token, jwtSecret, "HS256");
+
+      if (payload.exp && payload.exp < Math.floor(Date.now() / 1000)) {
+        return c.json({ authenticated: false }, 401);
+      }
+
+      return c.json({ authenticated: true });
+    } catch {
+      return c.json({ authenticated: false }, 401);
+    }
   });
 
   return auth;

@@ -28,7 +28,7 @@ Each step corresponds to a single commit.  Steps should be completed in order.
 - [x] **3.1** Implement `/auth/login` endpoint that validates password against
       config, returns JWT in HTTP-only cookie
 
-- [ ] **3.2** Implement `/auth/verify` endpoint and auth middleware that checks
+- [x] **3.2** Implement `/auth/verify` endpoint and auth middleware that checks
       JWT cookie, protects all `/api/*` and `/ws/*` routes
 
 - [ ] **3.3** Implement `/auth/logout` endpoint that clears the auth cookie
