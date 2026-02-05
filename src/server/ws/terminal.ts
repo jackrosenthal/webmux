@@ -196,6 +196,12 @@ function handleMessage(
       ptyManager.resize(parsed.paneId, parsed.cols, parsed.rows);
       break;
     }
+
+    case "focus": {
+      // Update the global focused pane in session state
+      sessionStore.setFocusedPane(parsed.paneId);
+      break;
+    }
   }
 }
 

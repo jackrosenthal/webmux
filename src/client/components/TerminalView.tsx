@@ -20,9 +20,16 @@ export function TerminalView() {
     }
   }, [session?.focusedPaneId]);
 
-  const handlePaneFocus = useCallback((paneId: string) => {
-    setFocusedPaneId(paneId);
-  }, []);
+  const handlePaneFocus = useCallback(
+    (paneId: string) => {
+      setFocusedPaneId(paneId);
+      // Send focus change to backend
+      if (wsRef.current?.readyState === WebSocket.OPEN) {
+        wsRef.current.send(JSON.stringify({ type: "focus", paneId }));
+      }
+    },
+    [wsRef]
+  );
 
   const handleTabSelect = useCallback((tabId: string) => {
     setActiveTab(tabId);

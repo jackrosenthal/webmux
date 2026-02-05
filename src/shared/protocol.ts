@@ -23,9 +23,21 @@ export interface ClientResizeMessage {
 }
 
 /**
+ * Message from client to server: focus changed.
+ * Informs the backend which pane this client is currently focused on.
+ */
+export interface ClientFocusMessage {
+  type: "focus";
+  paneId: string;
+}
+
+/**
  * All possible client-to-server messages.
  */
-export type ClientMessage = ClientInputMessage | ClientResizeMessage;
+export type ClientMessage =
+  | ClientInputMessage
+  | ClientResizeMessage
+  | ClientFocusMessage;
 
 /**
  * Message from server to client: terminal output data.
