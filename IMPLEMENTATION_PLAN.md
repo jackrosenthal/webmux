@@ -47,7 +47,7 @@ Each step corresponds to a single commit.  Steps should be completed in order.
 - [x] **4.3** Add xterm.js and react-xtermjs to frontend, create `Terminal`
       component that connects to WebSocket and renders terminal
 
-- [ ] **4.4** Implement terminal auto-resize using xterm-addon-fit, send resize
+- [x] **4.4** Implement terminal auto-resize using xterm-addon-fit, send resize
       events to backend, update PTY dimensions
 
 ## Phase 5: Session State
