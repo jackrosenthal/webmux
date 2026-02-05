@@ -73,3 +73,19 @@ export async function createTab(): Promise<boolean> {
   const response = await fetch("/api/tabs", { method: "POST" });
   return response.ok;
 }
+
+/**
+ * Update the split sizes for a pane's parent split.
+ * The sizes array must match the number of children in the split.
+ */
+export async function resizePane(
+  paneId: string,
+  sizes: number[]
+): Promise<boolean> {
+  const response = await fetch(`/api/panes/${paneId}/resize`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ sizes }),
+  });
+  return response.ok;
+}

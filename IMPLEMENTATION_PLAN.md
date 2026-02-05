@@ -96,7 +96,7 @@ Each step corresponds to a single commit.  Steps should be completed in order.
 - [x] **8.2** Implement drag-to-resize with mouse events, update split ratios
       locally during drag for responsiveness
 
-- [ ] **8.3** Implement `/api/panes/:id/resize` PATCH endpoint to persist new
+- [x] **8.3** Implement `/api/panes/:id/resize` PATCH endpoint to persist new
       split ratios, broadcast to other connected clients
 
 ## Phase 9: Pane Title Bars

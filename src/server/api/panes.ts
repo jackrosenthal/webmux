@@ -50,6 +50,32 @@ app.post("/:id/split", async (c) => {
 });
 
 /**
+ * PATCH /api/panes/:id/resize - Update split ratios for the pane's parent split.
+ * Body: { sizes: number[] } - new sizes for all children in the split
+ */
+app.patch("/:id/resize", async (c) => {
+  const paneId = c.req.param("id");
+  const body = await c.req.json<{ sizes?: unknown }>();
+
+  // Validate sizes
+  if (!Array.isArray(body.sizes)) {
+    return c.json({ error: "sizes must be an array" }, 400);
+  }
+
+  const sizes = body.sizes as number[];
+  if (!sizes.every((s) => typeof s === "number" && s >= 0)) {
+    return c.json({ error: "sizes must be an array of non-negative numbers" }, 400);
+  }
+
+  const updated = sessionStore.updateSplitSizes(paneId, sizes);
+  if (!updated) {
+    return c.json({ error: "Pane not found or not in a split" }, 404);
+  }
+
+  return c.json({ success: true });
+});
+
+/**
  * DELETE /api/panes/:id - Kill a pane and its PTY.
  * Updates the layout tree, collapsing split nodes as needed.
  * If this was the last pane in a tab, deletes the tab.

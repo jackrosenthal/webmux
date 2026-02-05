@@ -2,7 +2,8 @@ import { useCallback } from "react";
 import { SplitContainer } from "./SplitContainer";
 import { TabBar } from "./TabBar";
 import { useSession } from "../hooks/useSession";
-import { setActiveTab, createTab } from "../services/api";
+import { setActiveTab, createTab, resizePane } from "../services/api";
+import type { LayoutSplit } from "../../shared/types";
 
 /**
  * TerminalView manages WebSocket connection and session state.
@@ -18,6 +19,37 @@ export function TerminalView() {
   const handleNewTab = useCallback(() => {
     createTab();
   }, []);
+
+  const handleResizeComplete = useCallback(
+    (splitNode: LayoutSplit, newSizes: number[]) => {
+      // Find the first leaf pane in this split to use as the reference
+      const firstChild = splitNode.children[0];
+      if (!firstChild) return;
+
+      let paneId: string | null = null;
+      if (firstChild.type === "leaf") {
+        paneId = firstChild.paneId;
+      } else {
+        // Recursively find first leaf
+        const findFirstLeaf = (
+          node: LayoutSplit["children"][number]
+        ): string | null => {
+          if (node.type === "leaf") return node.paneId;
+          for (const child of node.children) {
+            const result = findFirstLeaf(child);
+            if (result) return result;
+          }
+          return null;
+        };
+        paneId = findFirstLeaf(firstChild);
+      }
+
+      if (paneId) {
+        resizePane(paneId, newSizes);
+      }
+    },
+    []
+  );
 
   if (loading) {
     return <div className="terminal-loading">Connecting...</div>;
@@ -45,7 +77,11 @@ export function TerminalView() {
         onNewTab={handleNewTab}
       />
       <div className="terminal-area">
-        <SplitContainer node={activeTab.layout} wsRef={wsRef} />
+        <SplitContainer
+          node={activeTab.layout}
+          wsRef={wsRef}
+          onResizeComplete={handleResizeComplete}
+        />
       </div>
     </div>
   );
