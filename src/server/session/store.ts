@@ -302,26 +302,28 @@ export class SessionStore {
 
   /**
    * Deletes a pane and updates the layout tree.
-   * Returns true if the pane was deleted, false if not found.
-   * If this was the last pane in a tab, the tab remains with an empty state
-   * (caller should handle this case, e.g., by deleting the tab).
+   * Returns an array of pane IDs affected:
+   * - The deleted pane ID
+   * - If this was the last pane in a tab (but not the last tab), the tab is deleted
+   * - If this was the last pane in the last tab, a new tab/pane is created
+   *   and the new pane ID is returned prefixed with "+"
+   * Returns empty array if the pane was not found.
    */
-  deletePane(paneId: string): boolean {
-    if (!this.state) return false;
-    if (!this.state.panes[paneId]) return false;
+  deletePane(paneId: string): string[] {
+    if (!this.state) return [];
+    if (!this.state.panes[paneId]) return [];
 
     // Find the tab containing this pane
     const tab = this.state.tabs.find((t) =>
       this.collectPaneIds(t.layout).includes(paneId)
     );
-    if (!tab) return false;
+    if (!tab) return [];
 
     // Check if this is the only pane in the tab
     const allPaneIds = this.collectPaneIds(tab.layout);
     if (allPaneIds.length === 1) {
-      // Delete the entire tab instead
-      this.deleteTab(tab.id);
-      return true;
+      // Delete the entire tab instead (which handles last-tab case)
+      return this.deleteTab(tab.id);
     }
 
     // Remove the pane from the layout
@@ -334,7 +336,7 @@ export class SessionStore {
     }
 
     this.notify();
-    return true;
+    return [paneId];
   }
 
   /**

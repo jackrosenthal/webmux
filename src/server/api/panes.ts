@@ -51,13 +51,31 @@ app.post("/:id/split", async (c) => {
 
 /**
  * DELETE /api/panes/:id - Kill a pane and its PTY.
+ * Updates the layout tree, collapsing split nodes as needed.
+ * If this was the last pane in a tab, deletes the tab.
+ * If this was the last tab, creates a new tab with a fresh pane.
  */
 app.delete("/:id", (c) => {
   const paneId = c.req.param("id");
-  const killed = ptyManager.kill(paneId);
-  if (!killed) {
+  const paneIds = sessionStore.deletePane(paneId);
+
+  if (paneIds.length === 0) {
     return c.json({ error: "Pane not found" }, 404);
   }
+
+  // Process pane IDs: kill existing PTYs, spawn for new panes (prefixed with +)
+  for (const id of paneIds) {
+    if (id.startsWith("+")) {
+      // New pane created because this was the last pane in the last tab
+      const newPaneId = id.slice(1);
+      ptyManager.spawn(newPaneId);
+      attachPtyToWebSocket(newPaneId);
+    } else {
+      // Kill the existing PTY
+      ptyManager.kill(id);
+    }
+  }
+
   return c.json({ success: true });
 });
 

@@ -85,7 +85,7 @@ Each step corresponds to a single commit.  Steps should be completed in order.
 - [x] **7.3** Create `SplitContainer` React component that recursively renders
       layout tree, positions panes using CSS flexbox
 
-- [ ] **7.4** Implement `/api/panes/:id` DELETE endpoint to kill single pane,
+- [x] **7.4** Implement `/api/panes/:id` DELETE endpoint to kill single pane,
       collapses layout tree node, handles "last pane in tab" case
 
 ## Phase 8: Pane Resizing
