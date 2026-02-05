@@ -44,7 +44,7 @@ Each step corresponds to a single commit.  Steps should be completed in order.
 - [x] **4.2** Implement WebSocket endpoint `/ws/terminal` with Bun's native
       WebSocket, authenticate connection, multiplex messages by pane ID
 
-- [ ] **4.3** Add xterm.js and react-xtermjs to frontend, create `Terminal`
+- [x] **4.3** Add xterm.js and react-xtermjs to frontend, create `Terminal`
       component that connects to WebSocket and renders terminal
 
 - [ ] **4.4** Implement terminal auto-resize using xterm-addon-fit, send resize

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Login } from "./components/Login";
+import { TerminalView } from "./components/TerminalView";
 import { verifyAuth } from "./services/api";
 import "./styles/main.css";
 
@@ -22,5 +23,5 @@ export function App() {
     return <Login onSuccess={() => setAuthState("authenticated")} />;
   }
 
-  return <div>Hello Webmux</div>;
+  return <TerminalView />;
 }

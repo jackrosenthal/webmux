@@ -11,6 +11,7 @@ import {
   authenticateWebSocket,
 } from "./ws/terminal.js";
 import type { WebmuxConfig } from "../shared/config.js";
+import { panesRoutes } from "./api/panes.js";
 
 const app = new Hono();
 
@@ -32,8 +33,9 @@ app.route("/auth", createAuthRoutes(config, jwtSecret));
 // Note: /ws/* is handled separately via WebSocket upgrade
 app.use("/api/*", authMiddleware);
 
-// API routes placeholder
+// API routes
 app.get("/api/health", (c) => c.json({ status: "ok" }));
+app.route("/api/panes", panesRoutes);
 
 // Serve static files from Vite build output
 app.use("/*", serveStatic({ root: distDir }));

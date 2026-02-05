@@ -42,3 +42,16 @@ export async function verifyAuth(): Promise<boolean> {
 export async function logout(): Promise<void> {
   await fetch("/auth/logout", { method: "POST" });
 }
+
+interface CreatePaneResponse {
+  paneId: string;
+}
+
+/**
+ * Create a new pane with a PTY.
+ */
+export async function createPane(): Promise<string> {
+  const response = await fetch("/api/panes", { method: "POST" });
+  const data: CreatePaneResponse = await response.json();
+  return data.paneId;
+}
