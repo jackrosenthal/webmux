@@ -12,4 +12,20 @@ export default defineConfig({
   build: {
     outDir: "dist/client",
   },
+  server: {
+    proxy: {
+      "/api": {
+        target: "http://localhost:8002",
+        changeOrigin: true,
+      },
+      "/ws": {
+        target: "ws://localhost:8002",
+        ws: true,
+      },
+      "/auth": {
+        target: "http://localhost:8002",
+        changeOrigin: true,
+      },
+    },
+  },
 });

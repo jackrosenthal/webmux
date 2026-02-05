@@ -11,7 +11,7 @@ Each step corresponds to a single commit.  Steps should be completed in order.
 - [x] **1.2** Set up Vite for frontend with React and TypeScript, create minimal
       `index.html` and `App.tsx` that renders "Hello Webmux"
 
-- [ ] **1.3** Set up Bun + Hono backend server, serve static files from Vite
+- [x] **1.3** Set up Bun + Hono backend server, serve static files from Vite
       build output, add `pnpm run dev` script that runs both concurrently
 
 ## Phase 2: Configuration
