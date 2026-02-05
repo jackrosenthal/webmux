@@ -4,7 +4,7 @@ Each step corresponds to a single commit.  Steps should be completed in order.
 
 ## Phase 1: Project Scaffolding
 
-- [ ] **1.1** Initialize pnpm workspace with `package.json`, set up TypeScript
+- [x] **1.1** Initialize pnpm workspace with `package.json`, set up TypeScript
       config for both frontend and backend, create basic directory structure
       (`src/server/`, `src/client/`, `src/shared/`)
 
