@@ -3,6 +3,7 @@ import { SplitContainer } from "./SplitContainer";
 import { TabBar } from "./TabBar";
 import { useSession } from "../hooks/useSession";
 import { useShortcuts } from "../hooks/useShortcuts";
+import { useTheme } from "../hooks/useTheme";
 import {
   setActiveTab,
   createTab,
@@ -22,6 +23,7 @@ import type { ShortcutsConfig } from "../../shared/config";
  */
 export function TerminalView() {
   const { session, wsRef, loading, error } = useSession();
+  const { theme } = useTheme();
   const [focusedPaneId, setFocusedPaneId] = useState<string | null>(null);
   const [shortcutsConfig, setShortcutsConfig] = useState<
     ShortcutsConfig | undefined
@@ -177,6 +179,7 @@ export function TerminalView() {
           focusedPaneId={focusedPaneId}
           onPaneFocus={handlePaneFocus}
           onResizeComplete={handleResizeComplete}
+          theme={theme}
         />
       </div>
     </div>

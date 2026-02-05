@@ -141,7 +141,7 @@ Each step corresponds to a single commit.  Steps should be completed in order.
 - [x] **12.2** Create theme types, implement theme loader that merges bundled
        themes with user themes from `~/.config/webmux/themes/`
 
-- [ ] **12.3** Apply theme to xterm.js instances, store selected theme in config,
+- [x] **12.3** Apply theme to xterm.js instances, store selected theme in config,
        persist across sessions
 
 - [ ] **12.4** Create theme selector dropdown in tab bar, update theme on

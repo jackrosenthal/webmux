@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { LayoutNode, LayoutSplit, Pane } from "../../shared/types";
+import type { TerminalTheme } from "../../shared/theme";
 import { Terminal } from "./Terminal";
 import { ResizeHandle } from "./ResizeHandle";
 import { PaneTitleBar } from "./PaneTitleBar";
@@ -18,6 +19,8 @@ interface SplitContainerProps {
   onResizeComplete?:
     | ((splitNode: LayoutSplit, newSizes: number[]) => void)
     | undefined;
+  /** Terminal theme to apply */
+  theme?: TerminalTheme | null | undefined;
 }
 
 /**
@@ -46,6 +49,7 @@ export function SplitContainer({
   focusedPaneId,
   onPaneFocus,
   onResizeComplete,
+  theme,
 }: SplitContainerProps) {
   // For leaf nodes, render the title bar and terminal
   if (node.type === "leaf") {
@@ -66,7 +70,7 @@ export function SplitContainer({
       <div className="split-leaf" onMouseEnter={handleMouseEnter}>
         <PaneTitleBar title={title} focused={isFocused} onClose={handleClose} />
         <div className="pane-terminal-container">
-          <Terminal paneId={node.paneId} wsRef={wsRef} />
+          <Terminal paneId={node.paneId} wsRef={wsRef} theme={theme} />
         </div>
       </div>
     );
@@ -81,6 +85,7 @@ export function SplitContainer({
       focusedPaneId={focusedPaneId}
       onPaneFocus={onPaneFocus}
       onResizeComplete={onResizeComplete}
+      theme={theme}
     />
   );
 }
@@ -96,6 +101,7 @@ function SplitNode({
   focusedPaneId,
   onPaneFocus,
   onResizeComplete,
+  theme,
 }: {
   node: LayoutSplit;
   wsRef: React.RefObject<WebSocket | null>;
@@ -105,6 +111,7 @@ function SplitNode({
   onResizeComplete?:
     | ((splitNode: LayoutSplit, newSizes: number[]) => void)
     | undefined;
+  theme?: TerminalTheme | null | undefined;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [resizeState, setResizeState] = useState<ResizeState | null>(null);
@@ -244,6 +251,7 @@ function SplitNode({
           focusedPaneId={focusedPaneId}
           onPaneFocus={onPaneFocus}
           onResizeComplete={onResizeComplete}
+          theme={theme}
         />
       </div>
     );

@@ -2,7 +2,8 @@
  * REST API client for Webmux.
  */
 
-import type { ShortcutsConfig } from "../../shared/config";
+import type { ShortcutsConfig, AppearanceConfig } from "../../shared/config";
+import type { TerminalTheme } from "../../shared/theme";
 
 interface LoginResponse {
   success?: boolean;
@@ -134,6 +135,7 @@ export async function deleteTab(tabId: string): Promise<boolean> {
  */
 interface ClientConfig {
   shortcuts: ShortcutsConfig;
+  appearance: AppearanceConfig;
 }
 
 /**
@@ -141,5 +143,13 @@ interface ClientConfig {
  */
 export async function getConfig(): Promise<ClientConfig> {
   const response = await fetch("/api/config");
+  return response.json();
+}
+
+/**
+ * Fetch all available terminal themes.
+ */
+export async function getThemes(): Promise<TerminalTheme[]> {
+  const response = await fetch("/api/themes");
   return response.json();
 }
