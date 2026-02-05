@@ -90,7 +90,7 @@ Each step corresponds to a single commit.  Steps should be completed in order.
 
 ## Phase 8: Pane Resizing
 
-- [ ] **8.1** Add resize handles between panes in `SplitContainer`, track split
+- [x] **8.1** Add resize handles between panes in `SplitContainer`, track split
       ratios in layout tree nodes
 
 - [ ] **8.2** Implement drag-to-resize with mouse events, update split ratios
