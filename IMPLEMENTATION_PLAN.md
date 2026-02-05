@@ -162,7 +162,7 @@ Each step corresponds to a single commit.  Steps should be completed in order.
 - [x] **14.2** Handle WebSocket disconnection gracefully, show reconnecting
        indicator, auto-reconnect with exponential backoff
 
-- [ ] **14.3** Add error handling and user-friendly error messages throughout
+- [x] **14.3** Add error handling and user-friendly error messages throughout
 
 - [ ] **14.4** Create default config file on first run if none exists, prompt
        user to set password

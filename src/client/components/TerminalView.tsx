@@ -4,6 +4,7 @@ import { TabBar } from "./TabBar";
 import { useSession } from "../hooks/useSession";
 import { useShortcuts } from "../hooks/useShortcuts";
 import { useTheme } from "../hooks/useTheme";
+import { useToast } from "./Toast";
 import {
   setActiveTab,
   createTab,
@@ -25,6 +26,7 @@ import { DEFAULT_CONFIG } from "../../shared/config";
 export function TerminalView() {
   const { session, wsRef, loading, error, connectionStatus } = useSession();
   const { theme, themes, selectedThemeName, setTheme } = useTheme();
+  const { showToast } = useToast();
   const [focusedPaneId, setFocusedPaneId] = useState<string | null>(null);
   const [shortcutsConfig, setShortcutsConfig] = useState<
     ShortcutsConfig | undefined
@@ -35,10 +37,15 @@ export function TerminalView() {
 
   // Fetch config on mount
   useEffect(() => {
-    getConfig().then((config) => {
-      setShortcutsConfig(config.shortcuts);
-      setTerminalConfig(config.terminal);
-    });
+    getConfig()
+      .then((config) => {
+        setShortcutsConfig(config.shortcuts);
+        setTerminalConfig(config.terminal);
+      })
+      .catch((err) => {
+        console.error("Failed to load config:", err);
+        // Config loading already has fallback defaults, no need to show error
+      });
   }, []);
 
   // Sync focused pane from session state (e.g., when session updates from server)
@@ -53,43 +60,78 @@ export function TerminalView() {
       setFocusedPaneId(paneId);
       // Send focus change to backend
       if (wsRef.current?.readyState === WebSocket.OPEN) {
-        wsRef.current.send(JSON.stringify({ type: "focus", paneId }));
+        try {
+          wsRef.current.send(JSON.stringify({ type: "focus", paneId }));
+        } catch (err) {
+          console.error("Failed to send focus message:", err);
+        }
       }
     },
     [wsRef]
   );
 
-  const handleTabSelect = useCallback((tabId: string) => {
-    setActiveTab(tabId);
-  }, []);
+  const handleTabSelect = useCallback(
+    async (tabId: string) => {
+      const result = await setActiveTab(tabId);
+      if (!result.success && result.error) {
+        showToast(result.error);
+      }
+    },
+    [showToast]
+  );
 
-  const handleNewTab = useCallback(() => {
-    createTab();
-  }, []);
+  const handleNewTab = useCallback(async () => {
+    const result = await createTab();
+    if (!result.success && result.error) {
+      showToast(result.error);
+    }
+  }, [showToast]);
 
-  const handleCloseTab = useCallback(() => {
+  const handleCloseTab = useCallback(async () => {
     if (session?.activeTabId) {
-      deleteTab(session.activeTabId);
+      const result = await deleteTab(session.activeTabId);
+      if (!result.success && result.error) {
+        showToast(result.error);
+      }
     }
-  }, [session?.activeTabId]);
+  }, [session?.activeTabId, showToast]);
 
-  const handleKillPane = useCallback(() => {
+  const handleKillPane = useCallback(async () => {
     if (focusedPaneId) {
-      deletePane(focusedPaneId);
+      const result = await deletePane(focusedPaneId);
+      if (!result.success && result.error) {
+        showToast(result.error);
+      }
     }
-  }, [focusedPaneId]);
+  }, [focusedPaneId, showToast]);
 
-  const handleVerticalSplit = useCallback(() => {
-    if (focusedPaneId) {
-      splitPane(focusedPaneId, "vertical");
-    }
-  }, [focusedPaneId]);
+  const handlePaneClose = useCallback(
+    async (paneId: string) => {
+      const result = await deletePane(paneId);
+      if (!result.success && result.error) {
+        showToast(result.error);
+      }
+    },
+    [showToast]
+  );
 
-  const handleHorizontalSplit = useCallback(() => {
+  const handleVerticalSplit = useCallback(async () => {
     if (focusedPaneId) {
-      splitPane(focusedPaneId, "horizontal");
+      const result = await splitPane(focusedPaneId, "vertical");
+      if (!result.success && result.error) {
+        showToast(result.error);
+      }
     }
-  }, [focusedPaneId]);
+  }, [focusedPaneId, showToast]);
+
+  const handleHorizontalSplit = useCallback(async () => {
+    if (focusedPaneId) {
+      const result = await splitPane(focusedPaneId, "horizontal");
+      if (!result.success && result.error) {
+        showToast(result.error);
+      }
+    }
+  }, [focusedPaneId, showToast]);
 
   const handleCopy = useCallback(() => {
     if (focusedPaneId) {
@@ -121,7 +163,7 @@ export function TerminalView() {
   useShortcuts(shortcutsConfig, shortcutHandlers);
 
   const handleResizeComplete = useCallback(
-    (splitNode: LayoutSplit, newSizes: number[]) => {
+    async (splitNode: LayoutSplit, newSizes: number[]) => {
       // Find the first leaf pane in this split to use as the reference
       const firstChild = splitNode.children[0];
       if (!firstChild) return;
@@ -145,7 +187,11 @@ export function TerminalView() {
       }
 
       if (paneId) {
-        resizePane(paneId, newSizes);
+        const result = await resizePane(paneId, newSizes);
+        if (!result.success && result.error) {
+          // Resize errors are usually transient, log but don't show toast
+          console.error("Resize failed:", result.error);
+        }
       }
     },
     []
@@ -187,6 +233,7 @@ export function TerminalView() {
           focusedPaneId={focusedPaneId}
           onPaneFocus={handlePaneFocus}
           onResizeComplete={handleResizeComplete}
+          onPaneClose={handlePaneClose}
           theme={theme}
           scrollbackLines={terminalConfig.scrollback_lines}
         />

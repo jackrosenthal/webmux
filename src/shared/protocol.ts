@@ -78,9 +78,19 @@ export interface ServerSessionSyncMessage {
 }
 
 /**
+ * Message from server to client: error notification.
+ * Sent when an error occurs processing a client message.
+ */
+export interface ServerErrorMessage {
+  type: "error";
+  error: string;
+}
+
+/**
  * All possible server-to-client messages.
  */
 export type ServerMessage =
   | ServerOutputMessage
   | ServerExitMessage
-  | ServerSessionSyncMessage;
+  | ServerSessionSyncMessage
+  | ServerErrorMessage;

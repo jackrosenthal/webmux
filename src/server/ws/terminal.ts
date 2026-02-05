@@ -118,7 +118,11 @@ function broadcastToPane(paneId: string, message: ServerMessage): void {
 
   const messageStr = JSON.stringify(message);
   for (const client of subscribers) {
-    client.send(messageStr);
+    try {
+      client.send(messageStr);
+    } catch (err) {
+      console.error(`Failed to send message to client for pane ${paneId}:`, err);
+    }
   }
 }
 
@@ -167,6 +171,18 @@ function unsubscribeFromAllPanes(ws: ServerWebSocket<WebSocketData>): void {
 }
 
 /**
+ * Sends an error message to a WebSocket client.
+ */
+function sendError(ws: ServerWebSocket<WebSocketData>, error: string): void {
+  try {
+    const errorMessage: ServerMessage = { type: "error", error };
+    ws.send(JSON.stringify(errorMessage));
+  } catch (err) {
+    console.error("Failed to send error message to client:", err);
+  }
+}
+
+/**
  * Handles incoming WebSocket messages.
  */
 function handleMessage(
@@ -178,52 +194,62 @@ function handleMessage(
     parsed = JSON.parse(message) as ClientMessage;
   } catch {
     console.error("Invalid WebSocket message:", message);
+    sendError(ws, "Invalid message format");
     return;
   }
 
-  switch (parsed.type) {
-    case "input": {
-      const pty = ptyManager.get(parsed.paneId);
-      if (pty) {
-        pty.write(parsed.data);
-      }
-      // Subscribe the client to this pane's output if not already
-      subscribeToPty(ws, parsed.paneId);
-      break;
-    }
-
-    case "resize": {
-      ptyManager.resize(parsed.paneId, parsed.cols, parsed.rows);
-      break;
-    }
-
-    case "focus": {
-      // Update the global focused pane in session state
-      sessionStore.setFocusedPane(parsed.paneId);
-      break;
-    }
-
-    case "subscribe": {
-      // Subscribe the client to the pane and send buffered scrollback
-      const subscribers = paneSubscribers.get(parsed.paneId);
-      const alreadySubscribed = subscribers?.has(ws) ?? false;
-
-      subscribeToPty(ws, parsed.paneId);
-
-      // Only send scrollback if this is a new subscription
-      if (!alreadySubscribed) {
-        const scrollback = ptyManager.getScrollback(parsed.paneId);
-        if (scrollback) {
-          const replayMessage: ServerMessage = {
-            type: "output",
-            paneId: parsed.paneId,
-            data: scrollback,
-          };
-          ws.send(JSON.stringify(replayMessage));
+  try {
+    switch (parsed.type) {
+      case "input": {
+        const pty = ptyManager.get(parsed.paneId);
+        if (pty) {
+          pty.write(parsed.data);
         }
+        // Subscribe the client to this pane's output if not already
+        subscribeToPty(ws, parsed.paneId);
+        break;
       }
-      break;
+
+      case "resize": {
+        ptyManager.resize(parsed.paneId, parsed.cols, parsed.rows);
+        break;
+      }
+
+      case "focus": {
+        // Update the global focused pane in session state
+        sessionStore.setFocusedPane(parsed.paneId);
+        break;
+      }
+
+      case "subscribe": {
+        // Subscribe the client to the pane and send buffered scrollback
+        const subscribers = paneSubscribers.get(parsed.paneId);
+        const alreadySubscribed = subscribers?.has(ws) ?? false;
+
+        subscribeToPty(ws, parsed.paneId);
+
+        // Only send scrollback if this is a new subscription
+        if (!alreadySubscribed) {
+          const scrollback = ptyManager.getScrollback(parsed.paneId);
+          if (scrollback) {
+            const replayMessage: ServerMessage = {
+              type: "output",
+              paneId: parsed.paneId,
+              data: scrollback,
+            };
+            try {
+              ws.send(JSON.stringify(replayMessage));
+            } catch (err) {
+              console.error(`Failed to send scrollback to client for pane ${parsed.paneId}:`, err);
+            }
+          }
+        }
+        break;
+      }
     }
+  } catch (err) {
+    console.error("Error handling WebSocket message:", err);
+    sendError(ws, "Internal server error");
   }
 }
 
@@ -240,20 +266,28 @@ export function attachPtyToWebSocket(paneId: string): void {
   const oscParser = new OscTitleParser();
 
   pty.onData((data: string) => {
-    // Buffer output for scrollback replay
-    ptyManager.appendToScrollback(paneId, data);
+    try {
+      // Buffer output for scrollback replay
+      ptyManager.appendToScrollback(paneId, data);
 
-    // Parse OSC escape sequences for title changes
-    const title = oscParser.process(data);
-    if (title !== null) {
-      sessionStore.setPaneTitle(paneId, title);
+      // Parse OSC escape sequences for title changes
+      try {
+        const title = oscParser.process(data);
+        if (title !== null) {
+          sessionStore.setPaneTitle(paneId, title);
+        }
+      } catch (err) {
+        console.error(`Failed to parse OSC sequence for pane ${paneId}:`, err);
+      }
+
+      broadcastToPane(paneId, {
+        type: "output",
+        paneId,
+        data,
+      });
+    } catch (err) {
+      console.error(`Error processing PTY output for pane ${paneId}:`, err);
     }
-
-    broadcastToPane(paneId, {
-      type: "output",
-      paneId,
-      data,
-    });
   });
 
   pty.onExit(({ exitCode }: { exitCode: number }) => {
@@ -331,7 +365,11 @@ export function broadcastToAll(message: ServerMessage): void {
   const messageStr = JSON.stringify(message);
   for (const client of connectedClients) {
     if (client.data.authenticated) {
-      client.send(messageStr);
+      try {
+        client.send(messageStr);
+      } catch (err) {
+        console.error("Failed to broadcast message to client:", err);
+      }
     }
   }
 }

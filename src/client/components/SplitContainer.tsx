@@ -4,7 +4,6 @@ import type { TerminalTheme } from "../../shared/theme";
 import { Terminal } from "./Terminal";
 import { ResizeHandle } from "./ResizeHandle";
 import { PaneTitleBar } from "./PaneTitleBar";
-import { deletePane } from "../services/api";
 
 interface SplitContainerProps {
   node: LayoutNode;
@@ -19,6 +18,8 @@ interface SplitContainerProps {
   onResizeComplete?:
     | ((splitNode: LayoutSplit, newSizes: number[]) => void)
     | undefined;
+  /** Called when a pane close is requested */
+  onPaneClose?: ((paneId: string) => void) | undefined;
   /** Terminal theme to apply */
   theme?: TerminalTheme | null | undefined;
   /** Number of lines of scrollback buffer */
@@ -51,6 +52,7 @@ export function SplitContainer({
   focusedPaneId,
   onPaneFocus,
   onResizeComplete,
+  onPaneClose,
   theme,
   scrollbackLines,
 }: SplitContainerProps) {
@@ -60,8 +62,8 @@ export function SplitContainer({
     const title = pane?.title ?? "Terminal";
 
     const handleClose = useCallback(() => {
-      deletePane(node.paneId);
-    }, [node.paneId]);
+      onPaneClose?.(node.paneId);
+    }, [node.paneId, onPaneClose]);
 
     const handleMouseEnter = useCallback(() => {
       onPaneFocus?.(node.paneId);
@@ -88,6 +90,7 @@ export function SplitContainer({
       focusedPaneId={focusedPaneId}
       onPaneFocus={onPaneFocus}
       onResizeComplete={onResizeComplete}
+      onPaneClose={onPaneClose}
       theme={theme}
       scrollbackLines={scrollbackLines}
     />
@@ -105,6 +108,7 @@ function SplitNode({
   focusedPaneId,
   onPaneFocus,
   onResizeComplete,
+  onPaneClose,
   theme,
   scrollbackLines,
 }: {
@@ -116,6 +120,7 @@ function SplitNode({
   onResizeComplete?:
     | ((splitNode: LayoutSplit, newSizes: number[]) => void)
     | undefined;
+  onPaneClose?: ((paneId: string) => void) | undefined;
   theme?: TerminalTheme | null | undefined;
   scrollbackLines?: number | undefined;
 }) {
@@ -257,6 +262,7 @@ function SplitNode({
           focusedPaneId={focusedPaneId}
           onPaneFocus={onPaneFocus}
           onResizeComplete={onResizeComplete}
+          onPaneClose={onPaneClose}
           theme={theme}
           scrollbackLines={scrollbackLines}
         />

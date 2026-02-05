@@ -15,6 +15,18 @@ interface TerminalProps {
 }
 
 /**
+ * Safely sends a message over WebSocket, catching and logging errors.
+ */
+function safeSend(ws: WebSocket | null, message: ClientMessage): void {
+  if (!ws || ws.readyState !== WebSocket.OPEN) return;
+  try {
+    ws.send(JSON.stringify(message));
+  } catch (err) {
+    console.error("Failed to send WebSocket message:", err);
+  }
+}
+
+/**
  * Sends a resize message to the backend to update PTY dimensions.
  */
 function sendResize(
@@ -23,28 +35,22 @@ function sendResize(
   cols: number,
   rows: number
 ): void {
-  if (ws && ws.readyState === WebSocket.OPEN) {
-    const message: ClientMessage = {
-      type: "resize",
-      paneId,
-      cols,
-      rows,
-    };
-    ws.send(JSON.stringify(message));
-  }
+  safeSend(ws, {
+    type: "resize",
+    paneId,
+    cols,
+    rows,
+  });
 }
 
 /**
  * Sends a subscribe message to request scrollback replay and live output.
  */
 function sendSubscribe(ws: WebSocket | null, paneId: string): void {
-  if (ws && ws.readyState === WebSocket.OPEN) {
-    const message: ClientMessage = {
-      type: "subscribe",
-      paneId,
-    };
-    ws.send(JSON.stringify(message));
-  }
+  safeSend(ws, {
+    type: "subscribe",
+    paneId,
+  });
 }
 
 /**
@@ -113,15 +119,11 @@ export function Terminal({ paneId, wsRef, theme, scrollbackLines }: TerminalProp
     sendResize(wsRef.current, paneId, xterm.cols, xterm.rows);
 
     xterm.onData((data: string) => {
-      const ws = wsRef.current;
-      if (ws && ws.readyState === WebSocket.OPEN) {
-        const message: ClientMessage = {
-          type: "input",
-          paneId,
-          data,
-        };
-        ws.send(JSON.stringify(message));
-      }
+      safeSend(wsRef.current, {
+        type: "input",
+        paneId,
+        data,
+      });
     });
 
     return () => {
@@ -162,11 +164,15 @@ export function Terminal({ paneId, wsRef, theme, scrollbackLines }: TerminalProp
     if (!ws) return;
 
     const handleMessage = (event: MessageEvent) => {
-      const message: ServerMessage = JSON.parse(event.data);
+      try {
+        const message: ServerMessage = JSON.parse(event.data);
 
-      // Only handle output messages for this pane
-      if (message.type === "output" && message.paneId === paneId && xtermRef.current) {
-        xtermRef.current.write(message.data);
+        // Only handle output messages for this pane
+        if (message.type === "output" && message.paneId === paneId && xtermRef.current) {
+          xtermRef.current.write(message.data);
+        }
+      } catch (err) {
+        console.error("Failed to parse WebSocket message:", err);
       }
     };
 

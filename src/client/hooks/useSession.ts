@@ -31,7 +31,16 @@ interface UseSessionResult {
 async function fetchSession(): Promise<SessionState> {
   const response = await fetch("/api/session");
   if (!response.ok) {
-    throw new Error(`Failed to fetch session: ${response.status}`);
+    let errorMessage = `Failed to fetch session: ${response.status}`;
+    try {
+      const data = await response.json();
+      if (typeof data.error === "string") {
+        errorMessage = data.error;
+      }
+    } catch {
+      // Ignore parse errors
+    }
+    throw new Error(errorMessage);
   }
   return response.json();
 }

@@ -15,15 +15,28 @@ const app = new Hono();
  * Initializes a new session with a single tab/pane on first connect.
  */
 app.get("/", (c) => {
-  const { state, newPaneId } = sessionStore.getState();
+  try {
+    const { state, newPaneId } = sessionStore.getState();
 
-  // If a new session was created, spawn a PTY for the initial pane
-  if (newPaneId) {
-    ptyManager.spawn(newPaneId);
-    attachPtyToWebSocket(newPaneId);
+    // If a new session was created, spawn a PTY for the initial pane
+    if (newPaneId) {
+      try {
+        ptyManager.spawn(newPaneId);
+        attachPtyToWebSocket(newPaneId);
+      } catch (err) {
+        console.error(`Failed to spawn PTY for initial pane ${newPaneId}:`, err);
+        return c.json(
+          { error: "Failed to spawn terminal process" },
+          500
+        );
+      }
+    }
+
+    return c.json(state);
+  } catch (err) {
+    console.error("Failed to get session state:", err);
+    return c.json({ error: "Failed to get session state" }, 500);
   }
-
-  return c.json(state);
 });
 
 export const sessionRoutes = app;
