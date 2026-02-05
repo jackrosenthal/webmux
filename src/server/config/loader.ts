@@ -7,7 +7,7 @@
  */
 
 import { parse } from "smol-toml";
-import { readFile } from "fs/promises";
+import { readFile, writeFile, mkdir, chmod } from "fs/promises";
 import { existsSync } from "fs";
 import path from "path";
 import os from "os";
@@ -89,6 +89,58 @@ The config file should have restrictive permissions (chmod 600).`);
   }
 }
 
+const DEFAULT_CONFIG_TEMPLATE = `# Webmux Configuration
+# See SPEC.md for full documentation.
+
+[server]
+port = 8002
+
+[auth]
+# REQUIRED: Set a password to access webmux.
+# Uncomment and set the password below, then restart the server.
+# password = "your-secure-password"
+token_validity_days = 14
+
+[terminal]
+scrollback_lines = 100000
+
+[shortcuts]
+new_tab = "Ctrl+Shift+T"
+close_tab = "Ctrl+Shift+W"
+vsplit = "Ctrl+Shift+|"
+hsplit = "Ctrl+Shift+-"
+kill_pane = "Ctrl+Shift+K"
+copy = "Ctrl+Shift+C"
+paste = "Ctrl+Shift+V"
+
+[appearance]
+theme = "Dracula"
+`;
+
+async function createDefaultConfig(configPath: string): Promise<void> {
+  const configDir = path.dirname(configPath);
+
+  // Create config directory if it doesn't exist
+  if (!existsSync(configDir)) {
+    await mkdir(configDir, { recursive: true });
+  }
+
+  // Write the default config template
+  await writeFile(configPath, DEFAULT_CONFIG_TEMPLATE, { mode: 0o600 });
+
+  // Ensure permissions are restrictive
+  await chmod(configPath, 0o600);
+
+  console.log(`Created default config file at:
+  ${configPath}
+
+Please edit this file and set a password in the [auth] section:
+  password = "your-secure-password"
+
+Then restart the server.`);
+  process.exit(0);
+}
+
 export async function loadConfig(): Promise<WebmuxConfig> {
   const configPath = getConfigPath();
 
@@ -97,6 +149,9 @@ export async function loadConfig(): Promise<WebmuxConfig> {
   if (existsSync(configPath)) {
     const content = await readFile(configPath, "utf-8");
     rawConfig = parse(content) as RawConfig;
+  } else {
+    // Create default config on first run
+    await createDefaultConfig(configPath);
   }
 
   const config: WebmuxConfig = {

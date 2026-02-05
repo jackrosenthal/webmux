@@ -164,7 +164,7 @@ Each step corresponds to a single commit.  Steps should be completed in order.
 
 - [x] **14.3** Add error handling and user-friendly error messages throughout
 
-- [ ] **14.4** Create default config file on first run if none exists, prompt
+- [x] **14.4** Create default config file on first run if none exists, prompt
        user to set password
 
 ## Phase 15: Production Build
