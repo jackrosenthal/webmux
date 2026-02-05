@@ -1,11 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { LayoutNode, LayoutSplit } from "../../shared/types";
+import type { LayoutNode, LayoutSplit, Pane } from "../../shared/types";
 import { Terminal } from "./Terminal";
 import { ResizeHandle } from "./ResizeHandle";
+import { PaneTitleBar } from "./PaneTitleBar";
 
 interface SplitContainerProps {
   node: LayoutNode;
   wsRef: React.RefObject<WebSocket | null>;
+  /** Pane data for looking up titles */
+  panes: Record<string, Pane>;
   /** Called when resize completes with the new sizes */
   onResizeComplete?:
     | ((splitNode: LayoutSplit, newSizes: number[]) => void)
@@ -28,19 +31,26 @@ interface ResizeState {
 
 /**
  * SplitContainer recursively renders the layout tree.
- * - Leaf nodes render a Terminal component
+ * - Leaf nodes render a Terminal component with title bar
  * - Split nodes render a flex container with children and resize handles
  */
 export function SplitContainer({
   node,
   wsRef,
+  panes,
   onResizeComplete,
 }: SplitContainerProps) {
-  // For leaf nodes, just render the terminal
+  // For leaf nodes, render the title bar and terminal
   if (node.type === "leaf") {
+    const pane = panes[node.paneId];
+    const title = pane?.title ?? "Terminal";
+
     return (
       <div className="split-leaf">
-        <Terminal paneId={node.paneId} wsRef={wsRef} />
+        <PaneTitleBar title={title} />
+        <div className="pane-terminal-container">
+          <Terminal paneId={node.paneId} wsRef={wsRef} />
+        </div>
       </div>
     );
   }
@@ -50,6 +60,7 @@ export function SplitContainer({
     <SplitNode
       node={node}
       wsRef={wsRef}
+      panes={panes}
       onResizeComplete={onResizeComplete}
     />
   );
@@ -62,10 +73,12 @@ export function SplitContainer({
 function SplitNode({
   node,
   wsRef,
+  panes,
   onResizeComplete,
 }: {
   node: LayoutSplit;
   wsRef: React.RefObject<WebSocket | null>;
+  panes: Record<string, Pane>;
   onResizeComplete?:
     | ((splitNode: LayoutSplit, newSizes: number[]) => void)
     | undefined;
@@ -204,6 +217,7 @@ function SplitNode({
         <SplitContainer
           node={child}
           wsRef={wsRef}
+          panes={panes}
           onResizeComplete={onResizeComplete}
         />
       </div>

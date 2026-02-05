@@ -101,7 +101,7 @@ Each step corresponds to a single commit.  Steps should be completed in order.
 
 ## Phase 9: Pane Title Bars
 
-- [ ] **9.1** Create `PaneTitleBar` component displaying pane title, add to each
+- [x] **9.1** Create `PaneTitleBar` component displaying pane title, add to each
       terminal pane
 
 - [ ] **9.2** Parse terminal title escape sequences (OSC 0/1/2) in PTY output,

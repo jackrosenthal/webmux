@@ -80,6 +80,7 @@ export function TerminalView() {
         <SplitContainer
           node={activeTab.layout}
           wsRef={wsRef}
+          panes={session.panes}
           onResizeComplete={handleResizeComplete}
         />
       </div>
