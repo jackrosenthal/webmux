@@ -60,9 +60,11 @@ export function SplitContainer({
       onPaneFocus?.(node.paneId);
     }, [node.paneId, onPaneFocus]);
 
+    const isFocused = focusedPaneId === node.paneId;
+
     return (
       <div className="split-leaf" onMouseEnter={handleMouseEnter}>
-        <PaneTitleBar title={title} onClose={handleClose} />
+        <PaneTitleBar title={title} focused={isFocused} onClose={handleClose} />
         <div className="pane-terminal-container">
           <Terminal paneId={node.paneId} wsRef={wsRef} />
         </div>

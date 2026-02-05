@@ -230,6 +230,16 @@ body,
   color: #ff6b6b;
 }
 
+/* Focused pane title bar */
+.pane-title-bar-focused {
+  background: #2d4a6d;
+  border-bottom-color: #4a9eff;
+}
+
+.pane-title-bar-focused .pane-title {
+  color: #f0f0f0;
+}
+
 /* Resize handles */
 .resize-handle {
   flex-shrink: 0;

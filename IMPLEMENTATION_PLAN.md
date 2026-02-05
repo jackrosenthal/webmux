@@ -117,7 +117,7 @@ Each step corresponds to a single commit.  Steps should be completed in order.
 - [x] **10.2** Send focus change to backend, include focused pane ID in terminal
        WebSocket messages so backend routes input correctly
 
-- [ ] **10.3** Add visual indicator for focused pane (subtle border or title bar
+- [x] **10.3** Add visual indicator for focused pane (subtle border or title bar
        highlight)
 
 ## Phase 11: Keyboard Shortcuts
