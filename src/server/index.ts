@@ -16,6 +16,7 @@ import type { WebmuxConfig } from "../shared/config.js";
 import { panesRoutes } from "./api/panes.js";
 import { sessionRoutes } from "./api/session.js";
 import { tabsRoutes } from "./api/tabs.js";
+import { createConfigRoutes } from "./api/config.js";
 
 const app = new Hono();
 
@@ -42,6 +43,7 @@ app.get("/api/health", (c) => c.json({ status: "ok" }));
 app.route("/api/session", sessionRoutes);
 app.route("/api/tabs", tabsRoutes);
 app.route("/api/panes", panesRoutes);
+app.route("/api/config", createConfigRoutes(config.shortcuts));
 
 // Serve static files from Vite build output
 app.use("/*", serveStatic({ root: distDir }));

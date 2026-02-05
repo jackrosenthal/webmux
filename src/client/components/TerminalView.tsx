@@ -1,9 +1,18 @@
-import { useCallback, useState, useEffect } from "react";
+import { useCallback, useState, useEffect, useMemo } from "react";
 import { SplitContainer } from "./SplitContainer";
 import { TabBar } from "./TabBar";
 import { useSession } from "../hooks/useSession";
-import { setActiveTab, createTab, resizePane } from "../services/api";
+import { useShortcuts } from "../hooks/useShortcuts";
+import {
+  setActiveTab,
+  createTab,
+  resizePane,
+  deleteTab,
+  deletePane,
+  getConfig,
+} from "../services/api";
 import type { LayoutSplit } from "../../shared/types";
+import type { ShortcutsConfig } from "../../shared/config";
 
 /**
  * TerminalView manages WebSocket connection and session state.
@@ -12,6 +21,16 @@ import type { LayoutSplit } from "../../shared/types";
 export function TerminalView() {
   const { session, wsRef, loading, error } = useSession();
   const [focusedPaneId, setFocusedPaneId] = useState<string | null>(null);
+  const [shortcutsConfig, setShortcutsConfig] = useState<
+    ShortcutsConfig | undefined
+  >(undefined);
+
+  // Fetch shortcuts config on mount
+  useEffect(() => {
+    getConfig().then((config) => {
+      setShortcutsConfig(config.shortcuts);
+    });
+  }, []);
 
   // Sync focused pane from session state (e.g., when session updates from server)
   useEffect(() => {
@@ -38,6 +57,31 @@ export function TerminalView() {
   const handleNewTab = useCallback(() => {
     createTab();
   }, []);
+
+  const handleCloseTab = useCallback(() => {
+    if (session?.activeTabId) {
+      deleteTab(session.activeTabId);
+    }
+  }, [session?.activeTabId]);
+
+  const handleKillPane = useCallback(() => {
+    if (focusedPaneId) {
+      deletePane(focusedPaneId);
+    }
+  }, [focusedPaneId]);
+
+  // Memoize shortcut handlers to avoid unnecessary re-renders
+  const shortcutHandlers = useMemo(
+    () => ({
+      onNewTab: handleNewTab,
+      onCloseTab: handleCloseTab,
+      onKillPane: handleKillPane,
+    }),
+    [handleNewTab, handleCloseTab, handleKillPane]
+  );
+
+  // Register keyboard shortcuts
+  useShortcuts(shortcutsConfig, shortcutHandlers);
 
   const handleResizeComplete = useCallback(
     (splitNode: LayoutSplit, newSizes: number[]) => {

@@ -2,6 +2,8 @@
  * REST API client for Webmux.
  */
 
+import type { ShortcutsConfig } from "../../shared/config";
+
 interface LoginResponse {
   success?: boolean;
   error?: string;
@@ -98,4 +100,29 @@ export async function deletePane(paneId: string): Promise<boolean> {
     method: "DELETE",
   });
   return response.ok;
+}
+
+/**
+ * Delete a tab and all its panes.
+ */
+export async function deleteTab(tabId: string): Promise<boolean> {
+  const response = await fetch(`/api/tabs/${tabId}`, {
+    method: "DELETE",
+  });
+  return response.ok;
+}
+
+/**
+ * Client configuration returned from /api/config.
+ */
+interface ClientConfig {
+  shortcuts: ShortcutsConfig;
+}
+
+/**
+ * Fetch client configuration from the server.
+ */
+export async function getConfig(): Promise<ClientConfig> {
+  const response = await fetch("/api/config");
+  return response.json();
 }

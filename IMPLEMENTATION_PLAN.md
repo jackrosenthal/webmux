@@ -125,7 +125,7 @@ Each step corresponds to a single commit.  Steps should be completed in order.
 - [x] **11.1** Create `ShortcutManager` class that parses shortcut config format
        (e.g., "Ctrl+Shift+T"), registers global keydown handlers
 
-- [ ] **11.2** Implement new tab, close tab, and kill pane shortcuts, ensure
+- [x] **11.2** Implement new tab, close tab, and kill pane shortcuts, ensure
        shortcuts don't interfere with terminal input
 
 - [ ] **11.3** Implement horizontal split and vertical split shortcuts
