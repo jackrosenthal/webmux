@@ -177,3 +177,7 @@ Each step corresponds to a single commit.  Steps should be completed in order.
 
 - [ ] **15.3** Test binary on clean system without Bun/Node installed, document
        any runtime dependencies (libc, etc.)
+
+## Phase 16: Identify Gaps
+
+- [ ] **16.1** Identify any gaps from SPEC.md that were not completed, or possibly not a part of the implementation plan (i.e., things left un-wired, etc).  Append new steps to the bottom of the implementation plan as required.

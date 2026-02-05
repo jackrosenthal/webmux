@@ -9,6 +9,7 @@ import {
   resizePane,
   deleteTab,
   deletePane,
+  splitPane,
   getConfig,
 } from "../services/api";
 import type { LayoutSplit } from "../../shared/types";
@@ -70,14 +71,28 @@ export function TerminalView() {
     }
   }, [focusedPaneId]);
 
+  const handleVerticalSplit = useCallback(() => {
+    if (focusedPaneId) {
+      splitPane(focusedPaneId, "vertical");
+    }
+  }, [focusedPaneId]);
+
+  const handleHorizontalSplit = useCallback(() => {
+    if (focusedPaneId) {
+      splitPane(focusedPaneId, "horizontal");
+    }
+  }, [focusedPaneId]);
+
   // Memoize shortcut handlers to avoid unnecessary re-renders
   const shortcutHandlers = useMemo(
     () => ({
       onNewTab: handleNewTab,
       onCloseTab: handleCloseTab,
       onKillPane: handleKillPane,
+      onVerticalSplit: handleVerticalSplit,
+      onHorizontalSplit: handleHorizontalSplit,
     }),
-    [handleNewTab, handleCloseTab, handleKillPane]
+    [handleNewTab, handleCloseTab, handleKillPane, handleVerticalSplit, handleHorizontalSplit]
   );
 
   // Register keyboard shortcuts

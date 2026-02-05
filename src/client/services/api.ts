@@ -103,6 +103,23 @@ export async function deletePane(paneId: string): Promise<boolean> {
 }
 
 /**
+ * Split a pane horizontally or vertically.
+ * @param paneId - The pane to split
+ * @param direction - "horizontal" or "vertical"
+ */
+export async function splitPane(
+  paneId: string,
+  direction: "horizontal" | "vertical"
+): Promise<boolean> {
+  const response = await fetch(`/api/panes/${paneId}/split`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ direction }),
+  });
+  return response.ok;
+}
+
+/**
  * Delete a tab and all its panes.
  */
 export async function deleteTab(tabId: string): Promise<boolean> {
