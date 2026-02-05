@@ -122,7 +122,7 @@ Each step corresponds to a single commit.  Steps should be completed in order.
 
 ## Phase 11: Keyboard Shortcuts
 
-- [ ] **11.1** Create `ShortcutManager` class that parses shortcut config format
+- [x] **11.1** Create `ShortcutManager` class that parses shortcut config format
        (e.g., "Ctrl+Shift+T"), registers global keydown handlers
 
 - [ ] **11.2** Implement new tab, close tab, and kill pane shortcuts, ensure
