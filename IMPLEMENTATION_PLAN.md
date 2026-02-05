@@ -63,7 +63,7 @@ Each step corresponds to a single commit.  Steps should be completed in order.
 
 ## Phase 6: Tabs
 
-- [ ] **6.1** Create `TabBar` component with tab buttons, active tab indicator,
+- [x] **6.1** Create `TabBar` component with tab buttons, active tab indicator,
       and new tab (+) button
 
 - [ ] **6.2** Implement `/api/tabs` POST endpoint to create new tab with single

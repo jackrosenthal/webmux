@@ -87,3 +87,79 @@ body,
   height: 100%;
   color: #888;
 }
+
+.terminal-error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #ff6b6b;
+}
+
+/* Tab Bar */
+.tab-bar {
+  display: flex;
+  align-items: center;
+  background: #2d2d2d;
+  border-bottom: 1px solid #444;
+  padding: 0 0.5rem;
+  height: 36px;
+  flex-shrink: 0;
+}
+
+.tab-list {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  overflow-x: auto;
+}
+
+.tab-button {
+  padding: 0.4rem 1rem;
+  border: none;
+  border-radius: 4px 4px 0 0;
+  background: transparent;
+  color: #aaa;
+  font-size: 0.875rem;
+  cursor: pointer;
+  white-space: nowrap;
+  position: relative;
+}
+
+.tab-button:hover {
+  background: #3a3a3a;
+  color: #f0f0f0;
+}
+
+.tab-button.active {
+  background: #1e1e1e;
+  color: #f0f0f0;
+}
+
+.tab-button.active::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: #4a9eff;
+}
+
+.new-tab-button {
+  font-size: 1rem;
+  font-weight: bold;
+  padding: 0.4rem 0.75rem;
+}
+
+/* Main layout container */
+.main-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.terminal-area {
+  flex: 1;
+  min-height: 0;
+}
