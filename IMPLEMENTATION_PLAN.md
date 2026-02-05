@@ -69,7 +69,7 @@ Each step corresponds to a single commit.  Steps should be completed in order.
 - [x] **6.2** Implement `/api/tabs` POST endpoint to create new tab with single
       pane, spawns new PTY
 
-- [ ] **6.3** Implement `/api/tabs/:id` DELETE endpoint to close tab, kills all
+- [x] **6.3** Implement `/api/tabs/:id` DELETE endpoint to close tab, kills all
       PTYs in tab, handles "last tab" case (create new empty tab)
 
 - [ ] **6.4** Wire up tab switching in UI, persist active tab in session state

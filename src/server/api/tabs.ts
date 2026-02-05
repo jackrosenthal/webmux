@@ -1,6 +1,7 @@
 /**
  * Tab management API endpoints.
  * POST /api/tabs creates a new tab with a single pane.
+ * DELETE /api/tabs/:id closes a tab and kills its PTYs.
  */
 
 import { Hono } from "hono";
@@ -28,6 +29,35 @@ app.post("/", (c) => {
   attachPtyToWebSocket(pane.id);
 
   return c.json({ tab, pane });
+});
+
+/**
+ * DELETE /api/tabs/:id - Close a tab.
+ * Kills all PTYs in the tab.
+ * If this was the last tab, creates a new empty tab.
+ */
+app.delete("/:id", (c) => {
+  const tabId = c.req.param("id");
+  const paneIds = sessionStore.deleteTab(tabId);
+
+  if (paneIds.length === 0) {
+    return c.json({ error: "Tab not found" }, 404);
+  }
+
+  // Process pane IDs: kill existing PTYs, spawn for new panes (prefixed with +)
+  for (const paneId of paneIds) {
+    if (paneId.startsWith("+")) {
+      // New pane created because this was the last tab
+      const newPaneId = paneId.slice(1);
+      ptyManager.spawn(newPaneId);
+      attachPtyToWebSocket(newPaneId);
+    } else {
+      // Kill the existing PTY
+      ptyManager.kill(paneId);
+    }
+  }
+
+  return c.json({ success: true });
 });
 
 export const tabsRoutes = app;
