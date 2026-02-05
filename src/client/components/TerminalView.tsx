@@ -23,7 +23,7 @@ import type { ShortcutsConfig } from "../../shared/config";
  */
 export function TerminalView() {
   const { session, wsRef, loading, error } = useSession();
-  const { theme } = useTheme();
+  const { theme, themes, selectedThemeName, setTheme } = useTheme();
   const [focusedPaneId, setFocusedPaneId] = useState<string | null>(null);
   const [shortcutsConfig, setShortcutsConfig] = useState<
     ShortcutsConfig | undefined
@@ -170,6 +170,9 @@ export function TerminalView() {
         activeTabId={session.activeTabId}
         onTabSelect={handleTabSelect}
         onNewTab={handleNewTab}
+        themes={themes}
+        selectedThemeName={selectedThemeName}
+        onThemeChange={setTheme}
       />
       <div className="terminal-area">
         <SplitContainer

@@ -144,7 +144,7 @@ Each step corresponds to a single commit.  Steps should be completed in order.
 - [x] **12.3** Apply theme to xterm.js instances, store selected theme in config,
        persist across sessions
 
-- [ ] **12.4** Create theme selector dropdown in tab bar, update theme on
+- [x] **12.4** Create theme selector dropdown in tab bar, update theme on
        selection, apply to all terminals immediately
 
 ## Phase 13: Scrollback
