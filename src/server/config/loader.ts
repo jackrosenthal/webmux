@@ -1,6 +1,9 @@
 /**
  * Configuration loader for Webmux.
  * Loads TOML config from ~/.config/webmux/config.toml with fallback defaults.
+ * Supports environment variable overrides:
+ *   - WEBMUX_CONFIG: Path to config file (default: ~/.config/webmux/config.toml)
+ *   - WEBMUX_PORT: Server port (overrides config file)
  */
 
 import { parse } from "smol-toml";
@@ -18,8 +21,11 @@ import type {
 } from "../../shared/config.js";
 import { DEFAULT_CONFIG } from "../../shared/config.js";
 
-function getDefaultConfigPath(): string {
-  return path.join(os.homedir(), ".config", "webmux", "config.toml");
+function getConfigPath(): string {
+  return (
+    process.env.WEBMUX_CONFIG ??
+    path.join(os.homedir(), ".config", "webmux", "config.toml")
+  );
 }
 
 function deepMerge<T extends object>(defaults: T, overrides: Partial<T>): T {
@@ -53,8 +59,38 @@ interface RawConfig {
   appearance?: Partial<AppearanceConfig>;
 }
 
+function applyEnvOverrides(config: WebmuxConfig): void {
+  const portEnv = process.env.WEBMUX_PORT;
+  if (portEnv !== undefined) {
+    const port = parseInt(portEnv, 10);
+    if (isNaN(port) || port < 1 || port > 65535) {
+      console.error(
+        `Error: WEBMUX_PORT must be a valid port number (1-65535), got: ${portEnv}`
+      );
+      process.exit(1);
+    }
+    config.server.port = port;
+  }
+}
+
+function validateConfig(config: WebmuxConfig): void {
+  if (!config.auth.password) {
+    console.error(`Error: No password configured.
+
+Please set a password in your config file:
+  ${getConfigPath()}
+
+Example config:
+  [auth]
+  password = "your-secure-password"
+
+The config file should have restrictive permissions (chmod 600).`);
+    process.exit(1);
+  }
+}
+
 export async function loadConfig(): Promise<WebmuxConfig> {
-  const configPath = getDefaultConfigPath();
+  const configPath = getConfigPath();
 
   let rawConfig: RawConfig = {};
 
@@ -73,6 +109,9 @@ export async function loadConfig(): Promise<WebmuxConfig> {
       rawConfig.appearance ?? {}
     ),
   };
+
+  applyEnvOverrides(config);
+  validateConfig(config);
 
   return config;
 }

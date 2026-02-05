@@ -20,7 +20,7 @@ Each step corresponds to a single commit.  Steps should be completed in order.
       config loader using smol-toml, load from `~/.config/webmux/config.toml`
       with fallback defaults
 
-- [ ] **2.2** Add environment variable overrides (`WEBMUX_PORT`, `WEBMUX_CONFIG`),
+- [x] **2.2** Add environment variable overrides (`WEBMUX_PORT`, `WEBMUX_CONFIG`),
       validate config on startup, exit with clear error if password not set
 
 ## Phase 3: Authentication
