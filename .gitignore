@@ -1,6 +1,7 @@
 node_modules/
 .pnpm-store/
 dist/
+package-lock.json
 *.log
 .env
 .env.*
@@ -10,3 +11,6 @@ dist/
 *~
 .vite/
 tsconfig.tsbuildinfo
+
+# Auto-generated embedded assets manifest
+src/server/assets/embedded.ts

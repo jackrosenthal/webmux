@@ -13,7 +13,9 @@
     "dev": "concurrently -n server,client -c blue,green \"bun --watch src/server/index.ts\" \"vite\"",
     "dev:server": "bun --watch src/server/index.ts",
     "dev:client": "vite",
-    "build": "vite build",
+    "build": "pnpm run build:client && pnpm run build:assets",
+    "build:client": "vite build",
+    "build:assets": "bun scripts/generate-assets.ts",
     "typecheck": "bun --bun tsc --noEmit -p tsconfig.server.json && bun --bun tsc --noEmit -p tsconfig.client.json",
     "fetch-themes": "bun scripts/fetch-gogh-themes.ts"
   },

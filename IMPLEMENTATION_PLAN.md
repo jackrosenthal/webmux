@@ -169,7 +169,7 @@ Each step corresponds to a single commit.  Steps should be completed in order.
 
 ## Phase 15: Production Build
 
-- [ ] **15.1** Configure Vite to build frontend assets, embed in backend binary
+- [x] **15.1** Configure Vite to build frontend assets, embed in backend binary
        using Bun's asset bundling
 
 - [ ] **15.2** Set up `bun build --compile` in build script, output single

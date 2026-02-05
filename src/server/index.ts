@@ -1,6 +1,4 @@
 import { Hono } from "hono";
-import { serveStatic } from "hono/bun";
-import path from "path";
 import type { Server } from "bun";
 import type { WebSocketData } from "./ws/terminal.js";
 import { loadConfig } from "./config/loader.js";
@@ -19,10 +17,9 @@ import { tabsRoutes } from "./api/tabs.js";
 import { createConfigRoutes } from "./api/config.js";
 import { createThemeRoutes } from "./api/themes.js";
 import { loadAllThemes } from "./theme/loader.js";
+import { createStaticMiddleware } from "./assets/static.js";
 
 const app = new Hono();
-
-const distDir = path.resolve(import.meta.dirname, "../../dist/client");
 
 // Load configuration
 const config: WebmuxConfig = await loadConfig();
@@ -52,11 +49,9 @@ app.route("/api/panes", panesRoutes);
 app.route("/api/config", createConfigRoutes(config.shortcuts, config.appearance, config.terminal));
 app.route("/api/themes", createThemeRoutes(themes));
 
-// Serve static files from Vite build output
-app.use("/*", serveStatic({ root: distDir }));
-
-// Fallback to index.html for SPA routing
-app.get("*", serveStatic({ root: distDir, path: "index.html" }));
+// Serve static files (embedded in production, filesystem in development)
+const staticMiddleware = createStaticMiddleware();
+app.use("/*", staticMiddleware);
 
 const port = config.server.port;
 
