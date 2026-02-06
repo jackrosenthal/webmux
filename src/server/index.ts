@@ -19,6 +19,7 @@ import { panesRoutes } from "./api/panes.js";
 import { sessionRoutes } from "./api/session.js";
 import { tabsRoutes } from "./api/tabs.js";
 import { createConfigRoutes } from "./api/config.js";
+import { createSettingsRoutes } from "./api/settings.js";
 import { createThemeRoutes } from "./api/themes.js";
 import { loadAllThemes } from "./theme/loader.js";
 import * as readline from "readline";
@@ -81,6 +82,7 @@ app.route("/api/session", sessionRoutes);
 app.route("/api/tabs", tabsRoutes);
 app.route("/api/panes", panesRoutes);
 app.route("/api/config", createConfigRoutes(config.shortcuts, config.appearance, config.terminal));
+app.route("/api/settings", createSettingsRoutes(config.appearance, config.auth, config.shortcuts, config.terminal));
 app.route("/api/themes", createThemeRoutes(themes));
 
 const port = config.server.port;

@@ -197,7 +197,7 @@ Each step corresponds to a single commit.  Steps should be completed in order.
 
 ## Phase 18: Settings Dialog
 
-- [ ] **18.1** Create `/api/settings` GET endpoint that returns current settings
+- [x] **18.1** Create `/api/settings` GET endpoint that returns current settings
       (appearance, security, shortcuts, terminal sections from config), create
       `/api/settings` PATCH endpoint that accepts partial updates and writes to
       config.toml

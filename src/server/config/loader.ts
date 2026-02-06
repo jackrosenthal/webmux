@@ -193,6 +193,109 @@ export async function saveTheme(themeName: string): Promise<void> {
   }
 }
 
+/**
+ * Settings that can be saved via the settings API.
+ */
+export interface SettingsToSave {
+  appearance: AppearanceConfig;
+  auth: {
+    token_validity_days: number;
+    password?: string;
+  };
+  shortcuts: ShortcutsConfig;
+  terminal: TerminalConfig;
+}
+
+/**
+ * Update a specific value in a TOML section.
+ * Returns the updated content.
+ */
+function updateTomlValue(
+  content: string,
+  section: string,
+  key: string,
+  value: string | number
+): string {
+  const valueStr = typeof value === "string" ? `"${value}"` : String(value);
+  const sectionHeader = `[${section}]`;
+  const keyRegex = new RegExp(`^(\\s*${key}\\s*=\\s*).*$`, "m");
+
+  // Check if section exists
+  if (content.includes(sectionHeader)) {
+    // Find the section bounds
+    const sectionStart = content.indexOf(sectionHeader);
+    const nextSectionMatch = content.slice(sectionStart + sectionHeader.length).match(/^\[/m);
+    const sectionEnd = nextSectionMatch
+      ? sectionStart + sectionHeader.length + (nextSectionMatch.index ?? 0)
+      : content.length;
+    const sectionContent = content.slice(sectionStart, sectionEnd);
+
+    if (keyRegex.test(sectionContent)) {
+      // Replace existing key within the section
+      const updatedSection = sectionContent.replace(keyRegex, `$1${valueStr}`);
+      return content.slice(0, sectionStart) + updatedSection + content.slice(sectionEnd);
+    } else {
+      // Add key after section header
+      const insertPos = sectionStart + sectionHeader.length;
+      return (
+        content.slice(0, insertPos) +
+        `\n${key} = ${valueStr}` +
+        content.slice(insertPos)
+      );
+    }
+  } else {
+    // Append section at the end
+    return content.trimEnd() + `\n\n[${section}]\n${key} = ${valueStr}\n`;
+  }
+}
+
+/**
+ * Save settings to the config file.
+ * Only updates the values that are provided, preserving existing structure and comments.
+ */
+export async function saveSettings(settings: SettingsToSave): Promise<void> {
+  const configPath = getConfigPath();
+
+  if (!existsSync(configPath)) {
+    throw new Error("Config file does not exist");
+  }
+
+  let content = await readFile(configPath, "utf-8");
+
+  // Update appearance settings
+  content = updateTomlValue(content, "appearance", "theme", settings.appearance.theme);
+
+  // Update auth settings
+  content = updateTomlValue(
+    content,
+    "auth",
+    "token_validity_days",
+    settings.auth.token_validity_days
+  );
+  if (settings.auth.password !== undefined) {
+    content = updateTomlValue(content, "auth", "password", settings.auth.password);
+  }
+
+  // Update shortcuts settings
+  content = updateTomlValue(content, "shortcuts", "leader", settings.shortcuts.leader);
+  content = updateTomlValue(content, "shortcuts", "new_tab", settings.shortcuts.new_tab);
+  content = updateTomlValue(content, "shortcuts", "vsplit", settings.shortcuts.vsplit);
+  content = updateTomlValue(content, "shortcuts", "hsplit", settings.shortcuts.hsplit);
+  content = updateTomlValue(content, "shortcuts", "kill_pane", settings.shortcuts.kill_pane);
+  content = updateTomlValue(content, "shortcuts", "copy", settings.shortcuts.copy);
+  content = updateTomlValue(content, "shortcuts", "paste", settings.shortcuts.paste);
+
+  // Update terminal settings
+  content = updateTomlValue(
+    content,
+    "terminal",
+    "scrollback_lines",
+    settings.terminal.scrollback_lines
+  );
+
+  await writeFile(configPath, content, { mode: 0o600 });
+}
+
 export async function loadConfig(): Promise<WebmuxConfig> {
   const configPath = getConfigPath();
 
