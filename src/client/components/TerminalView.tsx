@@ -167,6 +167,28 @@ export function TerminalView() {
   // Register keyboard shortcuts
   useShortcuts(shortcutsConfig, shortcutHandlers);
 
+  const handleOpenSettings = useCallback(() => {
+    setSettingsDialogOpen(true);
+  }, []);
+
+  const handleCloseSettings = useCallback(() => {
+    setSettingsDialogOpen(false);
+  }, []);
+
+  const handleSettingsChange = useCallback(() => {
+    // Reload config to pick up changes from settings dialog
+    reloadTheme();
+    getConfig()
+      .then((config) => {
+        setShortcutsConfig(config.shortcuts);
+        setTerminalConfig(config.terminal);
+        setAppearanceConfig(config.appearance);
+      })
+      .catch((err) => {
+        console.error("Failed to reload config:", err);
+      });
+  }, [reloadTheme]);
+
   const handleResizeComplete = useCallback(
     async (splitNode: LayoutSplit, newSizes: number[]) => {
       // Find the first leaf pane in this split to use as the reference
@@ -218,28 +240,6 @@ export function TerminalView() {
   if (!activeTab) {
     return <div className="terminal-loading">No active tab</div>;
   }
-
-  const handleOpenSettings = useCallback(() => {
-    setSettingsDialogOpen(true);
-  }, []);
-
-  const handleCloseSettings = useCallback(() => {
-    setSettingsDialogOpen(false);
-  }, []);
-
-  const handleSettingsChange = useCallback(() => {
-    // Reload config to pick up changes from settings dialog
-    reloadTheme();
-    getConfig()
-      .then((config) => {
-        setShortcutsConfig(config.shortcuts);
-        setTerminalConfig(config.terminal);
-        setAppearanceConfig(config.appearance);
-      })
-      .catch((err) => {
-        console.error("Failed to reload config:", err);
-      });
-  }, [reloadTheme]);
 
   return (
     <div className="main-container">
