@@ -202,7 +202,7 @@ Each step corresponds to a single commit.  Steps should be completed in order.
       `/api/settings` PATCH endpoint that accepts partial updates and writes to
       config.toml
 
-- [ ] **18.2** Create `SettingsDialog.tsx` component with modal overlay, tabbed
+- [x] **18.2** Create `SettingsDialog.tsx` component with modal overlay, tabbed
       interface using icon buttons in left sidebar (Appearance, Security,
       Shortcuts, Terminal tabs)
 
