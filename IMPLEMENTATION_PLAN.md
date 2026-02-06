@@ -194,3 +194,42 @@ Each step corresponds to a single commit.  Steps should be completed in order.
 - [x] **17.3** Persist theme selection to config file instead of localStorage -
       add `/api/config/theme` PATCH endpoint to write theme to config.toml,
       update client to call this endpoint on theme change
+
+## Phase 18: Settings Dialog
+
+- [ ] **18.1** Create `/api/settings` GET endpoint that returns current settings
+      (appearance, security, shortcuts, terminal sections from config), create
+      `/api/settings` PATCH endpoint that accepts partial updates and writes to
+      config.toml
+
+- [ ] **18.2** Create `SettingsDialog.tsx` component with modal overlay, tabbed
+      interface using icon buttons in left sidebar (Appearance, Security,
+      Shortcuts, Terminal tabs)
+
+- [ ] **18.3** Implement Appearance tab with theme dropdown (reusing existing
+      theme list), font size number input, save/cancel buttons that call
+      PATCH /api/settings
+
+- [ ] **18.4** Add Google Fonts integration - create curated list of monospace
+      fonts (JetBrains Mono, Fira Code, Source Code Pro, etc.), add font family
+      dropdown to Appearance tab, dynamically load selected font from Google
+      Fonts CDN
+
+- [ ] **18.5** Apply selected font to xterm.js instances, add `font_family` and
+      `font_size` to config schema and types, persist font settings to config
+
+- [ ] **18.6** Implement Security tab with password change form (current
+      password, new password, confirm), token validity days input
+
+- [ ] **18.7** Implement Shortcuts tab displaying all configurable shortcuts
+      (leader key, new_tab, vsplit, hsplit, kill_pane, copy, paste), allow
+      editing each binding with a key capture input
+
+- [ ] **18.8** Implement Terminal tab with scrollback lines input
+
+- [ ] **18.9** Replace theme selector dropdown in TabBar with gear icon button
+      that opens SettingsDialog, remove ThemeSelector.tsx
+
+- [ ] **18.10** Create `useSettings.ts` hook for fetching/updating settings,
+       handle optimistic updates and error states, broadcast settings changes
+       to all connected clients via WebSocket

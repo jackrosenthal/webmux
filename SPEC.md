@@ -41,7 +41,8 @@ webmux/
 │   │   ├── api/
 │   │   │   ├── session.ts       # GET /api/session
 │   │   │   ├── tabs.ts          # POST/DELETE /api/tabs
-│   │   │   └── panes.ts         # POST/DELETE/PATCH /api/panes
+│   │   │   ├── panes.ts         # POST/DELETE/PATCH /api/panes
+│   │   │   └── settings.ts      # GET/PATCH /api/settings
 │   │   ├── ws/
 │   │   │   └── terminal.ts      # WebSocket handler for terminal I/O
 │   │   ├── pty/
@@ -57,16 +58,17 @@ webmux/
 │   │   ├── App.tsx              # Root component, routing, auth gate
 │   │   ├── components/
 │   │   │   ├── Terminal.tsx     # xterm.js wrapper, WebSocket connection
-│   │   │   ├── TabBar.tsx       # Tab buttons, new tab, theme selector
+│   │   │   ├── TabBar.tsx       # Tab buttons, new tab, settings button
 │   │   │   ├── SplitContainer.tsx  # Recursive layout renderer for splits
 │   │   │   ├── PaneTitleBar.tsx # Title bar with name and close button
 │   │   │   ├── ResizeHandle.tsx # Draggable divider between panes
-│   │   │   ├── ThemeSelector.tsx   # Theme dropdown
+│   │   │   ├── SettingsDialog.tsx # Settings modal with tabbed interface
 │   │   │   └── Login.tsx        # Login form
 │   │   ├── hooks/
 │   │   │   ├── useSession.ts    # Session state subscription and sync
 │   │   │   ├── useTerminal.ts   # Terminal WebSocket and xterm management
 │   │   │   ├── useShortcuts.ts  # Keyboard shortcut registration
+│   │   │   ├── useSettings.ts   # Settings state and API interactions
 │   │   │   └── useTheme.ts      # Theme loading and application
 │   │   ├── services/
 │   │   │   ├── api.ts           # REST API client (fetch wrappers)
@@ -96,6 +98,7 @@ webmux/
 | `src/server/ws/terminal.ts` | Multiplexes terminal I/O over a single WebSocket per client. |
 | `src/client/App.tsx` | Checks auth, renders login or main UI, provides context providers. |
 | `src/client/components/SplitContainer.tsx` | Recursively renders the layout tree as nested flexbox containers. |
+| `src/client/components/SettingsDialog.tsx` | Tabbed modal for configuring appearance, security, shortcuts, and terminal settings. |
 | `src/client/hooks/useSession.ts` | Fetches initial state, subscribes to WebSocket updates, exposes actions. |
 | `src/shared/types.ts` | Defines `Session`, `Tab`, `Pane`, `LayoutNode` used by both ends. |
 | `src/shared/protocol.ts` | Defines WebSocket message shapes for type-safe communication. |
@@ -135,7 +138,7 @@ webmux/
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│ [Tab 1] [Tab 2] [Tab 3] [+]                    [Theme ▼]    │
+│ [Tab 1] [Tab 2] [Tab 3] [+]                          [⚙]    │
 ├─────────────────────────────────────────────────────────────┤
 │ ┌─ bash ───────────────────────────────────────[│][-][X]─┐ │
 │ │                                                         │ │
@@ -165,8 +168,62 @@ Each terminal pane has a title bar displaying:
 - Tab bar at the top with:
   - Active tabs (click to switch)
   - New tab button (+)
-  - Theme selector dropdown
+  - Settings button (gear icon) opens the settings dialog
 - Split controls in pane title bar or via keyboard shortcuts
+
+### Settings Dialog
+
+The settings dialog is a modal with a tabbed interface.  Tabs are displayed as
+icon buttons in a vertical sidebar on the left.
+
+```
+┌─ Settings ──────────────────────────────────────────────────┐
+│ ┌────┬─────────────────────────────────────────────────────┐│
+│ │[PA]│  Appearance                                         ││
+│ │    │                                                     ││
+│ │[LO]│  Theme:        [Dracula              ▼]             ││
+│ │    │                                                     ││
+│ │[KB]│  Font Family:  [JetBrains Mono       ▼]             ││
+│ │    │                                                     ││
+│ │[TE]│  Font Size:    [14] px                              ││
+│ │    │                                                     ││
+│ │    │                                                     ││
+│ └────┴─────────────────────────────────────────────────────┘│
+│                                         [Cancel]   [Save]   │
+└─────────────────────────────────────────────────────────────┘
+
+[PA] = IconPalette, [LO] = IconLock, [KB] = IconKeyboard, [TE] = IconTerminal2
+```
+
+#### Tabs
+
+Icons are from @tabler/icons-react:
+
+| Tabler Icon        | Tab          | Settings                                       |
+|--------------------|--------------|------------------------------------------------|
+| `IconPalette`      | Appearance   | Theme, font family (Google Fonts), font size   |
+| `IconLock`         | Security     | Password, token validity                       |
+| `IconKeyboard`     | Shortcuts    | Leader key, all keyboard shortcut bindings     |
+| `IconTerminal2`    | Terminal     | Scrollback lines, shell                        |
+
+#### Font Selection
+
+Fonts are loaded from Google Fonts.  The dropdown shows a curated list of
+monospace fonts suitable for terminal use:
+
+- JetBrains Mono (default)
+- Fira Code
+- Source Code Pro
+- IBM Plex Mono
+- Roboto Mono
+- Ubuntu Mono
+- Inconsolata
+- Cascadia Code
+- Hack
+- Anonymous Pro
+
+Custom fonts can be added via the config file.  The selected font is loaded
+dynamically from Google Fonts CDN.
 
 ## Keyboard Shortcuts
 
@@ -216,6 +273,8 @@ paste = "Ctrl+Shift+V"
 
 [appearance]
 theme = "Dracula"
+font_family = "JetBrains Mono"
+font_size = 14
 ```
 
 ## Color Schemes
@@ -271,6 +330,13 @@ theme = "Dracula"
 | POST   | /api/panes/:id/split  | Split pane (h or v)            |
 | DELETE | /api/panes/:id        | Kill pane                      |
 | PATCH  | /api/panes/:id/resize | Resize pane                    |
+
+### Settings
+
+| Method | Endpoint              | Description                    |
+|--------|-----------------------|--------------------------------|
+| GET    | /api/settings         | Get current settings           |
+| PATCH  | /api/settings         | Update settings (partial)      |
 
 ### WebSocket
 
@@ -357,7 +423,7 @@ ldd ./webmux
 
 ### Frontend
 - react
-- react-xtermjs
-- xterm
-- xterm-addon-fit
-- xterm-addon-web-links
+- @tabler/icons-react (icon library)
+- @xterm/xterm
+- @xterm/addon-fit
+- @xterm/addon-web-links
