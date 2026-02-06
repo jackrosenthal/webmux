@@ -1,6 +1,7 @@
 import { useCallback, useState, useEffect, useMemo } from "react";
 import { SplitContainer } from "./SplitContainer";
 import { TabBar } from "./TabBar";
+import { SettingsDialog } from "./SettingsDialog";
 import { useSession } from "../hooks/useSession";
 import { useShortcuts } from "../hooks/useShortcuts";
 import { useTheme } from "../hooks/useTheme";
@@ -24,7 +25,7 @@ import { DEFAULT_CONFIG } from "../../shared/config";
  */
 export function TerminalView() {
   const { session, wsRef, loading, error, connectionStatus } = useSession();
-  const { theme, themes, selectedThemeName, setTheme } = useTheme();
+  const { theme, reloadTheme } = useTheme();
   const { showToast } = useToast();
   const [focusedPaneId, setFocusedPaneId] = useState<string | null>(null);
   const [shortcutsConfig, setShortcutsConfig] = useState<
@@ -36,6 +37,7 @@ export function TerminalView() {
   const [appearanceConfig, setAppearanceConfig] = useState<AppearanceConfig>(
     DEFAULT_CONFIG.appearance
   );
+  const [settingsDialogOpen, setSettingsDialogOpen] = useState(false);
 
   // Fetch config on mount
   useEffect(() => {
@@ -217,6 +219,28 @@ export function TerminalView() {
     return <div className="terminal-loading">No active tab</div>;
   }
 
+  const handleOpenSettings = useCallback(() => {
+    setSettingsDialogOpen(true);
+  }, []);
+
+  const handleCloseSettings = useCallback(() => {
+    setSettingsDialogOpen(false);
+  }, []);
+
+  const handleSettingsChange = useCallback(() => {
+    // Reload config to pick up changes from settings dialog
+    reloadTheme();
+    getConfig()
+      .then((config) => {
+        setShortcutsConfig(config.shortcuts);
+        setTerminalConfig(config.terminal);
+        setAppearanceConfig(config.appearance);
+      })
+      .catch((err) => {
+        console.error("Failed to reload config:", err);
+      });
+  }, [reloadTheme]);
+
   return (
     <div className="main-container">
       <TabBar
@@ -224,9 +248,7 @@ export function TerminalView() {
         activeTabId={session.activeTabId}
         onTabSelect={handleTabSelect}
         onNewTab={handleNewTab}
-        themes={themes}
-        selectedThemeName={selectedThemeName}
-        onThemeChange={setTheme}
+        onOpenSettings={handleOpenSettings}
       />
       <div className="terminal-area">
         <SplitContainer
@@ -253,6 +275,11 @@ export function TerminalView() {
           </div>
         </div>
       )}
+      <SettingsDialog
+        isOpen={settingsDialogOpen}
+        onClose={handleCloseSettings}
+        onSettingsChange={handleSettingsChange}
+      />
     </div>
   );
 }

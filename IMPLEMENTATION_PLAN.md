@@ -227,7 +227,7 @@ Each step corresponds to a single commit.  Steps should be completed in order.
 
 - [x] **18.8** Implement Terminal tab with scrollback lines input
 
-- [ ] **18.9** Replace theme selector dropdown in TabBar with gear icon button
+- [x] **18.9** Replace theme selector dropdown in TabBar with gear icon button
       that opens SettingsDialog, remove ThemeSelector.tsx
 
 - [ ] **18.10** Create `useSettings.ts` hook for fetching/updating settings,

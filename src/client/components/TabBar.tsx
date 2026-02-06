@@ -1,29 +1,24 @@
 import type { Tab } from "../../shared/types";
-import type { TerminalTheme } from "../../shared/theme";
-import { ThemeSelector } from "./ThemeSelector";
+import { IconSettings } from "@tabler/icons-react";
 
 interface TabBarProps {
   tabs: Tab[];
   activeTabId: string;
   onTabSelect: (tabId: string) => void;
   onNewTab: () => void;
-  themes: TerminalTheme[];
-  selectedThemeName: string | null;
-  onThemeChange: (themeName: string) => void;
+  onOpenSettings: () => void;
 }
 
 /**
  * TabBar displays tab buttons with active indicator, new tab button,
- * and theme selector.
+ * and settings button.
  */
 export function TabBar({
   tabs,
   activeTabId,
   onTabSelect,
   onNewTab,
-  themes,
-  selectedThemeName,
-  onThemeChange,
+  onOpenSettings,
 }: TabBarProps) {
   return (
     <div className="tab-bar">
@@ -46,11 +41,13 @@ export function TabBar({
         </button>
       </div>
       <div className="tab-bar-right">
-        <ThemeSelector
-          themes={themes}
-          selectedThemeName={selectedThemeName}
-          onThemeChange={onThemeChange}
-        />
+        <button
+          className="settings-icon-button"
+          onClick={onOpenSettings}
+          title="Settings"
+        >
+          <IconSettings size={18} />
+        </button>
       </div>
     </div>
   );

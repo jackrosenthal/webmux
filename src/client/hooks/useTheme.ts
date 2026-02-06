@@ -19,6 +19,8 @@ export interface UseThemeResult {
   selectedThemeName: string | null;
   /** Change the current theme */
   setTheme: (themeName: string) => void;
+  /** Reload theme from server config */
+  reloadTheme: () => void;
 }
 
 /**
@@ -58,10 +60,19 @@ export function useTheme(): UseThemeResult {
     });
   }, []);
 
+  const reloadTheme = useCallback(async () => {
+    try {
+      const config = await getConfig();
+      setSelectedThemeName(config.appearance.theme);
+    } catch (err) {
+      console.error("Failed to reload theme:", err);
+    }
+  }, []);
+
   const theme = useMemo(() => {
     if (!selectedThemeName || themes.length === 0) return null;
     return themes.find((t) => t.name === selectedThemeName) ?? themes[0] ?? null;
   }, [themes, selectedThemeName]);
 
-  return { theme, themes, loading, selectedThemeName, setTheme };
+  return { theme, themes, loading, selectedThemeName, setTheme, reloadTheme };
 }
