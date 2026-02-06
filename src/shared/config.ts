@@ -16,8 +16,8 @@ export interface TerminalConfig {
 }
 
 export interface ShortcutsConfig {
+  leader: string;
   new_tab: string;
-  close_tab: string;
   vsplit: string;
   hsplit: string;
   kill_pane: string;
@@ -49,11 +49,11 @@ export const DEFAULT_CONFIG: WebmuxConfig = {
     scrollback_lines: 100000,
   },
   shortcuts: {
-    new_tab: "Ctrl+Shift+T",
-    close_tab: "Ctrl+Shift+W",
-    vsplit: "Ctrl+Shift+|",
-    hsplit: "Ctrl+Shift+-",
-    kill_pane: "Ctrl+Shift+K",
+    leader: "Ctrl+b",
+    new_tab: "n",
+    vsplit: "|",
+    hsplit: "-",
+    kill_pane: "x",
     copy: "Ctrl+Shift+C",
     paste: "Ctrl+Shift+V",
   },

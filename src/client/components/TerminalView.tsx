@@ -9,7 +9,6 @@ import {
   setActiveTab,
   createTab,
   resizePane,
-  deleteTab,
   deletePane,
   splitPane,
   getConfig,
@@ -87,15 +86,6 @@ export function TerminalView() {
     }
   }, [showToast]);
 
-  const handleCloseTab = useCallback(async () => {
-    if (session?.activeTabId) {
-      const result = await deleteTab(session.activeTabId);
-      if (!result.success && result.error) {
-        showToast(result.error);
-      }
-    }
-  }, [session?.activeTabId, showToast]);
-
   const handleKillPane = useCallback(async () => {
     if (focusedPaneId) {
       const result = await deletePane(focusedPaneId);
@@ -149,14 +139,13 @@ export function TerminalView() {
   const shortcutHandlers = useMemo(
     () => ({
       onNewTab: handleNewTab,
-      onCloseTab: handleCloseTab,
       onKillPane: handleKillPane,
       onVerticalSplit: handleVerticalSplit,
       onHorizontalSplit: handleHorizontalSplit,
       onCopy: handleCopy,
       onPaste: handlePaste,
     }),
-    [handleNewTab, handleCloseTab, handleKillPane, handleVerticalSplit, handleHorizontalSplit, handleCopy, handlePaste]
+    [handleNewTab, handleKillPane, handleVerticalSplit, handleHorizontalSplit, handleCopy, handlePaste]
   );
 
   // Register keyboard shortcuts
@@ -236,6 +225,7 @@ export function TerminalView() {
           onPaneClose={handlePaneClose}
           theme={theme}
           scrollbackLines={terminalConfig.scrollback_lines}
+          shortcutsConfig={shortcutsConfig}
         />
       </div>
       {connectionStatus === "reconnecting" && (

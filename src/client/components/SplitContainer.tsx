@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { LayoutNode, LayoutSplit, Pane } from "../../shared/types";
 import type { TerminalTheme } from "../../shared/theme";
+import type { ShortcutsConfig } from "../../shared/config";
 import { Terminal } from "./Terminal";
 import { ResizeHandle } from "./ResizeHandle";
 import { PaneTitleBar } from "./PaneTitleBar";
@@ -24,6 +25,8 @@ interface SplitContainerProps {
   theme?: TerminalTheme | null | undefined;
   /** Number of lines of scrollback buffer */
   scrollbackLines?: number | undefined;
+  /** Shortcuts config for key handling */
+  shortcutsConfig?: ShortcutsConfig | undefined;
 }
 
 /**
@@ -55,6 +58,7 @@ export function SplitContainer({
   onPaneClose,
   theme,
   scrollbackLines,
+  shortcutsConfig,
 }: SplitContainerProps) {
   // For leaf nodes, render the title bar and terminal
   if (node.type === "leaf") {
@@ -75,7 +79,7 @@ export function SplitContainer({
       <div className="split-leaf" onMouseEnter={handleMouseEnter}>
         <PaneTitleBar title={title} focused={isFocused} onClose={handleClose} />
         <div className="pane-terminal-container">
-          <Terminal paneId={node.paneId} wsRef={wsRef} theme={theme} scrollbackLines={scrollbackLines} />
+          <Terminal paneId={node.paneId} wsRef={wsRef} theme={theme} scrollbackLines={scrollbackLines} shortcutsConfig={shortcutsConfig} />
         </div>
       </div>
     );
@@ -93,6 +97,7 @@ export function SplitContainer({
       onPaneClose={onPaneClose}
       theme={theme}
       scrollbackLines={scrollbackLines}
+      shortcutsConfig={shortcutsConfig}
     />
   );
 }
@@ -111,6 +116,7 @@ function SplitNode({
   onPaneClose,
   theme,
   scrollbackLines,
+  shortcutsConfig,
 }: {
   node: LayoutSplit;
   wsRef: React.RefObject<WebSocket | null>;
@@ -123,6 +129,7 @@ function SplitNode({
   onPaneClose?: ((paneId: string) => void) | undefined;
   theme?: TerminalTheme | null | undefined;
   scrollbackLines?: number | undefined;
+  shortcutsConfig?: ShortcutsConfig | undefined;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [resizeState, setResizeState] = useState<ResizeState | null>(null);
@@ -265,6 +272,7 @@ function SplitNode({
           onPaneClose={onPaneClose}
           theme={theme}
           scrollbackLines={scrollbackLines}
+          shortcutsConfig={shortcutsConfig}
         />
       </div>
     );

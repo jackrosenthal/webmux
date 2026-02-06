@@ -268,11 +268,11 @@ interface ClientConfig {
  */
 const DEFAULT_CLIENT_CONFIG: ClientConfig = {
   shortcuts: {
-    new_tab: "Ctrl+Shift+T",
-    close_tab: "Ctrl+Shift+W",
-    vsplit: "Ctrl+Shift+|",
-    hsplit: "Ctrl+Shift+-",
-    kill_pane: "Ctrl+Shift+K",
+    leader: "Ctrl+b",
+    new_tab: "n",
+    vsplit: "|",
+    hsplit: "-",
+    kill_pane: "x",
     copy: "Ctrl+Shift+C",
     paste: "Ctrl+Shift+V",
   },

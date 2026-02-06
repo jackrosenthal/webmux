@@ -112,11 +112,13 @@ token_validity_days = 14
 scrollback_lines = 100000
 
 [shortcuts]
-new_tab = "Ctrl+Shift+T"
-close_tab = "Ctrl+Shift+W"
-vsplit = "Ctrl+Shift+|"
-hsplit = "Ctrl+Shift+-"
-kill_pane = "Ctrl+Shift+K"
+# Leader key (like tmux prefix). Press leader, then action key.
+leader = "Ctrl+b"
+new_tab = "n"
+vsplit = "|"
+hsplit = "-"
+kill_pane = "x"
+# Copy/paste are direct shortcuts (no leader needed)
 copy = "Ctrl+Shift+C"
 paste = "Ctrl+Shift+V"
 

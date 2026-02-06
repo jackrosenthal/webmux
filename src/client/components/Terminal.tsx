@@ -4,6 +4,8 @@ import { FitAddon } from "@xterm/addon-fit";
 import { WebLinksAddon } from "@xterm/addon-web-links";
 import type { ClientMessage, ServerMessage } from "../../shared/protocol";
 import type { TerminalTheme } from "../../shared/theme";
+import type { ShortcutsConfig } from "../../shared/config";
+import { parseShortcut, matchesShortcut, isLeaderModeActive } from "../hooks/useShortcuts";
 import { registerTerminal, unregisterTerminal } from "../services/terminalRegistry";
 import "@xterm/xterm/css/xterm.css";
 
@@ -12,6 +14,7 @@ interface TerminalProps {
   wsRef: React.RefObject<WebSocket | null>;
   theme?: TerminalTheme | null | undefined;
   scrollbackLines?: number | undefined;
+  shortcutsConfig?: ShortcutsConfig | undefined;
 }
 
 /**
@@ -19,11 +22,9 @@ interface TerminalProps {
  */
 function safeSend(ws: WebSocket | null, message: ClientMessage): void {
   if (!ws || ws.readyState !== WebSocket.OPEN) {
-    console.log(`[Terminal] safeSend: cannot send, ws=${ws ? 'exists' : 'null'}, readyState=${ws?.readyState}`);
     return;
   }
   try {
-    console.log(`[Terminal] Sending message: ${message.type}`);
     ws.send(JSON.stringify(message));
   } catch (err) {
     console.error("Failed to send WebSocket message:", err);
@@ -51,7 +52,6 @@ function sendResize(
  * Sends a subscribe message to request scrollback replay and live output.
  */
 function sendSubscribe(ws: WebSocket | null, paneId: string): void {
-  console.log(`[Terminal] Sending subscribe for pane ${paneId}, ws=${ws ? 'exists' : 'null'}, readyState=${ws?.readyState}`);
   safeSend(ws, {
     type: "subscribe",
     paneId,
@@ -70,10 +70,16 @@ function toXtermTheme(theme: TerminalTheme): Omit<TerminalTheme, "name"> {
  * Terminal component that renders an xterm.js terminal and connects to
  * the backend via WebSocket for input/output.
  */
-export function Terminal({ paneId, wsRef, theme, scrollbackLines }: TerminalProps) {
+export function Terminal({ paneId, wsRef, theme, scrollbackLines, shortcutsConfig }: TerminalProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const xtermRef = useRef<XTerm | null>(null);
   const fitAddonRef = useRef<FitAddon | null>(null);
+  const shortcutsConfigRef = useRef<ShortcutsConfig | undefined>(shortcutsConfig);
+
+  // Keep ref updated with latest config
+  useEffect(() => {
+    shortcutsConfigRef.current = shortcutsConfig;
+  }, [shortcutsConfig]);
 
   const handleResize = useCallback(() => {
     const fitAddon = fitAddonRef.current;
@@ -117,6 +123,39 @@ export function Terminal({ paneId, wsRef, theme, scrollbackLines }: TerminalProp
     xtermRef.current = xterm;
     fitAddonRef.current = fitAddon;
 
+    // Allow leader key and shortcuts to bubble up to window
+    xterm.attachCustomKeyEventHandler((event) => {
+      // Only handle keydown, not keyup
+      if (event.type !== "keydown") {
+        return true;
+      }
+
+      // When leader mode is active, pass ALL keys to the shortcut handler
+      if (isLeaderModeActive()) {
+        event.preventDefault();
+        event.stopPropagation();
+        event.stopImmediatePropagation();
+        return false;
+      }
+
+      // Let Ctrl+Shift combinations pass through (for copy/paste)
+      if (event.ctrlKey && event.shiftKey) {
+        return false;
+      }
+
+      // Let leader key pass through
+      const config = shortcutsConfigRef.current;
+      if (config?.leader) {
+        const leader = parseShortcut(config.leader);
+        if (matchesShortcut(event, leader)) {
+          return false;
+        }
+      }
+
+      // Let xterm handle all other keys
+      return true;
+    });
+
     // Register terminal for copy/paste operations
     registerTerminal(paneId, xterm);
 
@@ -124,6 +163,10 @@ export function Terminal({ paneId, wsRef, theme, scrollbackLines }: TerminalProp
     sendResize(wsRef.current, paneId, xterm.cols, xterm.rows);
 
     xterm.onData((data: string) => {
+      // Don't send input while in leader mode
+      if (isLeaderModeActive()) {
+        return;
+      }
       safeSend(wsRef.current, {
         type: "input",
         paneId,
@@ -189,14 +232,11 @@ export function Terminal({ paneId, wsRef, theme, scrollbackLines }: TerminalProp
 
   // Subscribe to the pane to receive scrollback replay and live output
   useEffect(() => {
-    console.log(`[Terminal] Subscribe effect running for pane ${paneId}`);
     const ws = wsRef.current;
     if (!ws) {
-      console.log(`[Terminal] No WebSocket, skipping subscribe`);
       return;
     }
 
-    console.log(`[Terminal] WebSocket readyState: ${ws.readyState} (OPEN=${WebSocket.OPEN})`);
     // If WebSocket is already open, subscribe immediately
     if (ws.readyState === WebSocket.OPEN) {
       sendSubscribe(ws, paneId);
@@ -204,7 +244,6 @@ export function Terminal({ paneId, wsRef, theme, scrollbackLines }: TerminalProp
 
     // Also subscribe when WebSocket opens (handles reconnect case)
     const handleOpen = () => {
-      console.log(`[Terminal] WebSocket opened, subscribing`);
       sendSubscribe(ws, paneId);
     };
 

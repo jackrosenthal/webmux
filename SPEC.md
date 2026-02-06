@@ -170,19 +170,21 @@ Each terminal pane has a title bar displaying:
 
 ## Keyboard Shortcuts
 
-Shortcuts are configurable via `~/.config/webmux/config.toml`.
+Shortcuts use a leader key system (like tmux).  Press the leader key, then the
+action key.  Shortcuts are configurable via `~/.config/webmux/config.toml`.
 
 ### Defaults
 
+**Leader key:** `Ctrl+B`
+
 | Shortcut         | Action                        |
 |------------------|-------------------------------|
-| Ctrl+Shift+T     | New tab                       |
-| Ctrl+Shift+W     | Close current tab             |
-| Ctrl+Shift+\|    | Vertical split                |
-| Ctrl+Shift+-     | Horizontal split              |
-| Ctrl+Shift+K     | Kill current pane             |
-| Ctrl+Shift+C     | Copy selected text            |
-| Ctrl+Shift+V     | Paste from clipboard          |
+| Leader, n        | New tab                       |
+| Leader, \|       | Vertical split                |
+| Leader, -        | Horizontal split              |
+| Leader, x        | Kill current pane             |
+| Ctrl+Shift+C     | Copy selected text (direct)   |
+| Ctrl+Shift+V     | Paste from clipboard (direct) |
 
 ## Configuration
 
@@ -204,11 +206,11 @@ token_validity_days = 14
 scrollback_lines = 100000
 
 [shortcuts]
-new_tab = "Ctrl+Shift+T"
-close_tab = "Ctrl+Shift+W"
-vsplit = "Ctrl+Shift+|"
-hsplit = "Ctrl+Shift+-"
-kill_pane = "Ctrl+Shift+K"
+leader = "Ctrl+b"
+new_tab = "n"
+vsplit = "|"
+hsplit = "-"
+kill_pane = "x"
 copy = "Ctrl+Shift+C"
 paste = "Ctrl+Shift+V"
 
