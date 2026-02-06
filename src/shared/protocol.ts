@@ -97,10 +97,33 @@ export interface ServerErrorMessage {
 }
 
 /**
+ * Settings exposed to the client (same as ClientSettings in api/settings.ts).
+ */
+export interface ClientSettingsData {
+  appearance: import("./config").AppearanceConfig;
+  security: {
+    token_validity_days: number;
+    has_password: boolean;
+  };
+  shortcuts: import("./config").ShortcutsConfig;
+  terminal: import("./config").TerminalConfig;
+}
+
+/**
+ * Message from server to client: settings sync.
+ * Sent when settings are updated to broadcast to all connected clients.
+ */
+export interface ServerSettingsSyncMessage {
+  type: "settingsSync";
+  settings: ClientSettingsData;
+}
+
+/**
  * All possible server-to-client messages.
  */
 export type ServerMessage =
   | ServerOutputMessage
   | ServerExitMessage
   | ServerSessionSyncMessage
-  | ServerErrorMessage;
+  | ServerErrorMessage
+  | ServerSettingsSyncMessage;

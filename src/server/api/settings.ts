@@ -13,6 +13,8 @@ import type {
 } from "../../shared/config.js";
 import { saveSettings } from "../config/loader.js";
 import { verifyPassword, hashPassword } from "../auth/routes.js";
+import { broadcastToAll } from "../ws/terminal.js";
+import type { ServerSettingsSyncMessage } from "../../shared/protocol.js";
 
 /**
  * Settings exposed to the client.
@@ -193,6 +195,14 @@ export function createSettingsRoutes(
         shortcuts,
         terminal,
       };
+
+      // Broadcast settings change to all connected clients
+      const syncMessage: ServerSettingsSyncMessage = {
+        type: "settingsSync",
+        settings,
+      };
+      broadcastToAll(syncMessage);
+
       return c.json(settings);
     } catch (err) {
       console.error("Failed to update settings:", err);

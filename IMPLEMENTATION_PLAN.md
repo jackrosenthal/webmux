@@ -230,6 +230,6 @@ Each step corresponds to a single commit.  Steps should be completed in order.
 - [x] **18.9** Replace theme selector dropdown in TabBar with gear icon button
       that opens SettingsDialog, remove ThemeSelector.tsx
 
-- [ ] **18.10** Create `useSettings.ts` hook for fetching/updating settings,
+- [x] **18.10** Create `useSettings.ts` hook for fetching/updating settings,
        handle optimistic updates and error states, broadcast settings changes
        to all connected clients via WebSocket
