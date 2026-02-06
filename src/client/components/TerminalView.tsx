@@ -15,7 +15,7 @@ import {
 } from "../services/api";
 import { copyFromTerminal, pasteToTerminal } from "../services/terminalRegistry";
 import type { LayoutSplit } from "../../shared/types";
-import type { ShortcutsConfig, TerminalConfig } from "../../shared/config";
+import type { ShortcutsConfig, TerminalConfig, AppearanceConfig } from "../../shared/config";
 import { DEFAULT_CONFIG } from "../../shared/config";
 
 /**
@@ -33,6 +33,9 @@ export function TerminalView() {
   const [terminalConfig, setTerminalConfig] = useState<TerminalConfig>(
     DEFAULT_CONFIG.terminal
   );
+  const [appearanceConfig, setAppearanceConfig] = useState<AppearanceConfig>(
+    DEFAULT_CONFIG.appearance
+  );
 
   // Fetch config on mount
   useEffect(() => {
@@ -40,6 +43,7 @@ export function TerminalView() {
       .then((config) => {
         setShortcutsConfig(config.shortcuts);
         setTerminalConfig(config.terminal);
+        setAppearanceConfig(config.appearance);
       })
       .catch((err) => {
         console.error("Failed to load config:", err);
@@ -237,6 +241,8 @@ export function TerminalView() {
           theme={theme}
           scrollbackLines={terminalConfig.scrollback_lines}
           shortcutsConfig={shortcutsConfig}
+          fontFamily={appearanceConfig.font_family}
+          fontSize={appearanceConfig.font_size}
         />
       </div>
       {connectionStatus === "reconnecting" && (

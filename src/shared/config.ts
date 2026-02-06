@@ -62,5 +62,6 @@ export const DEFAULT_CONFIG: WebmuxConfig = {
   appearance: {
     theme: "Dracula",
     font_family: "JetBrains Mono",
+    font_size: 14,
   },
 };

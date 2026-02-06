@@ -279,6 +279,7 @@ const DEFAULT_CLIENT_CONFIG: ClientConfig = {
   appearance: {
     theme: "Dracula",
     font_family: "JetBrains Mono",
+    font_size: 14,
   },
   terminal: {
     scrollback_lines: 100000,

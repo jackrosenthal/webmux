@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef, useCallback, useState } from "react";
 import { Terminal as XTerm } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
 import { WebLinksAddon } from "@xterm/addon-web-links";
@@ -7,6 +7,7 @@ import type { TerminalTheme } from "../../shared/theme";
 import type { ShortcutsConfig } from "../../shared/config";
 import { parseShortcut, matchesShortcut, isLeaderModeActive } from "../hooks/useShortcuts";
 import { registerTerminal, unregisterTerminal } from "../services/terminalRegistry";
+import { loadFont, getCssFontFamily } from "../services/fontLoader";
 import "@xterm/xterm/css/xterm.css";
 
 interface TerminalProps {
@@ -15,6 +16,8 @@ interface TerminalProps {
   theme?: TerminalTheme | null | undefined;
   scrollbackLines?: number | undefined;
   shortcutsConfig?: ShortcutsConfig | undefined;
+  fontFamily?: string | undefined;
+  fontSize?: number | undefined;
 }
 
 /**
@@ -80,11 +83,12 @@ function toXtermTheme(theme: TerminalTheme): Omit<TerminalTheme, "name"> {
  * Terminal component that renders an xterm.js terminal and connects to
  * the backend via WebSocket for input/output.
  */
-export function Terminal({ paneId, wsRef, theme, scrollbackLines, shortcutsConfig }: TerminalProps) {
+export function Terminal({ paneId, wsRef, theme, scrollbackLines, shortcutsConfig, fontFamily, fontSize }: TerminalProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const xtermRef = useRef<XTerm | null>(null);
   const fitAddonRef = useRef<FitAddon | null>(null);
   const shortcutsConfigRef = useRef<ShortcutsConfig | undefined>(shortcutsConfig);
+  const [fontLoaded, setFontLoaded] = useState(false);
 
   // Keep ref updated with latest config
   useEffect(() => {
@@ -100,13 +104,24 @@ export function Terminal({ paneId, wsRef, theme, scrollbackLines, shortcutsConfi
     sendResize(wsRef.current, paneId, xterm.cols, xterm.rows);
   }, [paneId, wsRef]);
 
+  // Preload font before terminal creation
   useEffect(() => {
-    if (!containerRef.current) return;
+    if (fontFamily) {
+      loadFont(fontFamily)
+        .then(() => setFontLoaded(true))
+        .catch(() => setFontLoaded(true)); // Continue even if font fails
+    } else {
+      setFontLoaded(true);
+    }
+  }, [fontFamily]);
+
+  useEffect(() => {
+    if (!containerRef.current || !fontLoaded) return;
 
     const xtermOptions: ConstructorParameters<typeof XTerm>[0] = {
       cursorBlink: true,
-      fontFamily: "monospace",
-      fontSize: 14,
+      fontFamily: fontFamily ? getCssFontFamily(fontFamily) : "monospace",
+      fontSize: fontSize ?? 14,
     };
 
     // Apply scrollback if configured
@@ -195,9 +210,9 @@ export function Terminal({ paneId, wsRef, theme, scrollbackLines, shortcutsConfi
       xtermRef.current = null;
       fitAddonRef.current = null;
     };
-    // Note: theme is intentionally not in deps - we handle theme changes separately
+    // Note: theme and font settings are intentionally not in deps - we handle those changes separately
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [paneId, wsRef]);
+  }, [paneId, wsRef, fontLoaded]);
 
   // Apply theme changes dynamically
   useEffect(() => {
@@ -205,6 +220,36 @@ export function Terminal({ paneId, wsRef, theme, scrollbackLines, shortcutsConfi
       xtermRef.current.options.theme = toXtermTheme(theme);
     }
   }, [theme]);
+
+  // Apply font changes dynamically
+  useEffect(() => {
+    const xterm = xtermRef.current;
+    const fitAddon = fitAddonRef.current;
+    if (!xterm) return;
+
+    if (fontFamily) {
+      loadFont(fontFamily)
+        .catch(() => {
+          // Font loading failed, continue with fallback
+        })
+        .finally(() => {
+          xterm.options.fontFamily = getCssFontFamily(fontFamily);
+          // Refit after font change to recalculate character dimensions
+          fitAddon?.fit();
+        });
+    }
+  }, [fontFamily]);
+
+  // Apply font size changes dynamically
+  useEffect(() => {
+    const xterm = xtermRef.current;
+    const fitAddon = fitAddonRef.current;
+    if (!xterm || fontSize === undefined) return;
+
+    xterm.options.fontSize = fontSize;
+    // Refit after font size change to recalculate terminal dimensions
+    fitAddon?.fit();
+  }, [fontSize]);
 
   // Auto-resize terminal when container size changes
   useEffect(() => {

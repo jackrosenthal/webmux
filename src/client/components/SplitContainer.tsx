@@ -31,6 +31,10 @@ interface SplitContainerProps {
   scrollbackLines?: number | undefined;
   /** Shortcuts config for key handling */
   shortcutsConfig?: ShortcutsConfig | undefined;
+  /** Font family for terminal */
+  fontFamily?: string | undefined;
+  /** Font size for terminal */
+  fontSize?: number | undefined;
 }
 
 /**
@@ -64,6 +68,8 @@ export function SplitContainer({
   theme,
   scrollbackLines,
   shortcutsConfig,
+  fontFamily,
+  fontSize,
 }: SplitContainerProps) {
   // For leaf nodes, render the title bar and terminal
   if (node.type === "leaf") {
@@ -98,7 +104,7 @@ export function SplitContainer({
           onClose={handleClose}
         />
         <div className="pane-terminal-container">
-          <Terminal paneId={node.paneId} wsRef={wsRef} theme={theme} scrollbackLines={scrollbackLines} shortcutsConfig={shortcutsConfig} />
+          <Terminal paneId={node.paneId} wsRef={wsRef} theme={theme} scrollbackLines={scrollbackLines} shortcutsConfig={shortcutsConfig} fontFamily={fontFamily} fontSize={fontSize} />
         </div>
       </div>
     );
@@ -118,6 +124,8 @@ export function SplitContainer({
       theme={theme}
       scrollbackLines={scrollbackLines}
       shortcutsConfig={shortcutsConfig}
+      fontFamily={fontFamily}
+      fontSize={fontSize}
     />
   );
 }
@@ -138,6 +146,8 @@ function SplitNode({
   theme,
   scrollbackLines,
   shortcutsConfig,
+  fontFamily,
+  fontSize,
 }: {
   node: LayoutSplit;
   wsRef: React.RefObject<WebSocket | null>;
@@ -154,6 +164,8 @@ function SplitNode({
   theme?: TerminalTheme | null | undefined;
   scrollbackLines?: number | undefined;
   shortcutsConfig?: ShortcutsConfig | undefined;
+  fontFamily?: string | undefined;
+  fontSize?: number | undefined;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [resizeState, setResizeState] = useState<ResizeState | null>(null);
@@ -298,6 +310,8 @@ function SplitNode({
           theme={theme}
           scrollbackLines={scrollbackLines}
           shortcutsConfig={shortcutsConfig}
+          fontFamily={fontFamily}
+          fontSize={fontSize}
         />
       </div>
     );
