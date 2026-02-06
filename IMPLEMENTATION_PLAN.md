@@ -184,7 +184,7 @@ Each step corresponds to a single commit.  Steps should be completed in order.
 
 ## Phase 17: Address Gaps
 
-- [ ] **17.1** Commit pnpm-workspace.yaml to version control (file exists but is
+- [x] **17.1** Commit pnpm-workspace.yaml to version control (file exists but is
       untracked)
 
 - [ ] **17.2** Implement password hashing with @node-rs/argon2 as specified in
