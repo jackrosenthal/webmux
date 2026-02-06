@@ -1,13 +1,12 @@
 /**
  * Hook for managing terminal theme state.
  * Fetches themes from the server and provides the selected theme.
+ * Theme selection is persisted to the server config file.
  */
 
 import { useState, useEffect, useMemo, useCallback } from "react";
 import type { TerminalTheme } from "../../shared/theme";
-import { getConfig, getThemes } from "../services/api";
-
-const THEME_STORAGE_KEY = "webmux:theme";
+import { getConfig, getThemes, updateTheme } from "../services/api";
 
 export interface UseThemeResult {
   /** The currently selected theme, or null if not yet loaded */
@@ -24,7 +23,7 @@ export interface UseThemeResult {
 
 /**
  * Fetches themes and configuration, returning the selected theme.
- * Theme selection is persisted to localStorage for client-side persistence.
+ * Theme selection is persisted to the server config file.
  */
 export function useTheme(): UseThemeResult {
   const [themes, setThemes] = useState<TerminalTheme[]>([]);
@@ -40,13 +39,8 @@ export function useTheme(): UseThemeResult {
         ]);
         setThemes(themesData);
 
-        // Check localStorage first, fall back to config
-        const storedTheme = localStorage.getItem(THEME_STORAGE_KEY);
-        if (storedTheme && themesData.some((t) => t.name === storedTheme)) {
-          setSelectedThemeName(storedTheme);
-        } else {
-          setSelectedThemeName(config.appearance.theme);
-        }
+        // Use the theme from server config
+        setSelectedThemeName(config.appearance.theme);
       } finally {
         setLoading(false);
       }
@@ -56,7 +50,12 @@ export function useTheme(): UseThemeResult {
 
   const setTheme = useCallback((themeName: string) => {
     setSelectedThemeName(themeName);
-    localStorage.setItem(THEME_STORAGE_KEY, themeName);
+    // Persist to server config file (fire and forget, log errors)
+    updateTheme(themeName).then((result) => {
+      if (!result.success) {
+        console.error("Failed to persist theme:", result.error);
+      }
+    });
   }, []);
 
   const theme = useMemo(() => {

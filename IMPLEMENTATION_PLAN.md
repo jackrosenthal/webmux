@@ -191,6 +191,6 @@ Each step corresponds to a single commit.  Steps should be completed in order.
       SPEC.md - add dependency, hash passwords before comparison, update config
       generation to store hashed passwords
 
-- [ ] **17.3** Persist theme selection to config file instead of localStorage -
+- [x] **17.3** Persist theme selection to config file instead of localStorage -
       add `/api/config/theme` PATCH endpoint to write theme to config.toml,
       update client to call this endpoint on theme change

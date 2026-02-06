@@ -148,6 +148,49 @@ Then restart the server.`);
   process.exit(0);
 }
 
+/**
+ * Get the config file path (for use by other modules that need to update it).
+ */
+export function getConfigFilePath(): string {
+  return getConfigPath();
+}
+
+/**
+ * Update the theme in the config file.
+ * Reads the current file, updates the appearance.theme value, and writes it back.
+ */
+export async function saveTheme(themeName: string): Promise<void> {
+  const configPath = getConfigPath();
+
+  if (!existsSync(configPath)) {
+    throw new Error("Config file does not exist");
+  }
+
+  const content = await readFile(configPath, "utf-8");
+
+  // Check if [appearance] section exists
+  if (content.includes("[appearance]")) {
+    // Update existing theme value or add it to the section
+    const themeRegex = /^(\s*theme\s*=\s*).*$/m;
+    if (themeRegex.test(content)) {
+      // Replace existing theme value
+      const updated = content.replace(themeRegex, `$1"${themeName}"`);
+      await writeFile(configPath, updated, { mode: 0o600 });
+    } else {
+      // Add theme after [appearance] line
+      const updated = content.replace(
+        /(\[appearance\]\s*\n)/,
+        `$1theme = "${themeName}"\n`
+      );
+      await writeFile(configPath, updated, { mode: 0o600 });
+    }
+  } else {
+    // Append [appearance] section at the end
+    const updated = content.trimEnd() + `\n\n[appearance]\ntheme = "${themeName}"\n`;
+    await writeFile(configPath, updated, { mode: 0o600 });
+  }
+}
+
 export async function loadConfig(): Promise<WebmuxConfig> {
   const configPath = getConfigPath();
 

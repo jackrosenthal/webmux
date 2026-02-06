@@ -319,3 +319,25 @@ export async function getThemes(): Promise<TerminalTheme[]> {
     return [];
   }
 }
+
+/**
+ * Update the theme in the server config file.
+ * This persists the theme selection across sessions.
+ */
+export async function updateTheme(themeName: string): Promise<ApiResult> {
+  try {
+    const response = await fetch("/api/config/theme", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ theme: themeName }),
+    });
+    if (!response.ok) {
+      const serverError = await parseErrorBody(response);
+      return { success: false, error: serverError ?? "Failed to update theme" };
+    }
+    return { success: true };
+  } catch (err) {
+    console.error("Update theme request failed:", err);
+    return { success: false, error: "Network error. Failed to update theme." };
+  }
+}
