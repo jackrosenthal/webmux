@@ -2,7 +2,11 @@ import { Hono } from "hono";
 import type { Server } from "bun";
 import type { WebSocketData } from "./ws/terminal.js";
 import { loadConfig } from "./config/loader.js";
-import { createAuthRoutes, generateJwtSecret } from "./auth/routes.js";
+import {
+  createAuthRoutes,
+  generateJwtSecret,
+  hashPassword,
+} from "./auth/routes.js";
 import { createAuthMiddleware } from "./auth/middleware.js";
 import {
   createWebSocketHandlers,
@@ -18,6 +22,34 @@ import { createConfigRoutes } from "./api/config.js";
 import { createThemeRoutes } from "./api/themes.js";
 import { loadAllThemes } from "./theme/loader.js";
 import { createStaticMiddleware } from "./assets/static.js";
+import * as readline from "readline";
+
+// Handle --hash-password CLI argument
+if (process.argv.includes("--hash-password")) {
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
+
+  // Disable echo for password input
+  process.stdout.write("Enter password to hash: ");
+  const password = await new Promise<string>((resolve) => {
+    rl.question("", (answer) => {
+      resolve(answer);
+      rl.close();
+    });
+  });
+
+  if (!password) {
+    console.error("Error: Password cannot be empty");
+    process.exit(1);
+  }
+
+  const hash = await hashPassword(password);
+  console.log("\nHashed password (add this to your config.toml):\n");
+  console.log(`password = "${hash}"`);
+  process.exit(0);
+}
 
 const app = new Hono();
 

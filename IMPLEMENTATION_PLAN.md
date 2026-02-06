@@ -187,7 +187,7 @@ Each step corresponds to a single commit.  Steps should be completed in order.
 - [x] **17.1** Commit pnpm-workspace.yaml to version control (file exists but is
       untracked)
 
-- [ ] **17.2** Implement password hashing with @node-rs/argon2 as specified in
+- [x] **17.2** Implement password hashing with @node-rs/argon2 as specified in
       SPEC.md - add dependency, hash passwords before comparison, update config
       generation to store hashed passwords
 

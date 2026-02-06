@@ -1,12 +1,14 @@
 /**
  * Authentication routes for Webmux.
  * Handles login with JWT tokens stored in HTTP-only cookies.
+ * Supports both plain text and argon2-hashed passwords.
  */
 
 import { Hono } from "hono";
 import { sign, verify } from "hono/jwt";
 import { setCookie, getCookie, deleteCookie } from "hono/cookie";
 import { timingSafeEqual } from "crypto";
+import { verify as argon2Verify, hash as argon2Hash } from "@node-rs/argon2";
 import type { WebmuxConfig } from "../../shared/config.js";
 import { AUTH_COOKIE_NAME } from "./middleware.js";
 
@@ -35,6 +37,39 @@ function timingSafeCompare(a: string, b: string): boolean {
   return timingSafeEqual(aBytes, bBytes);
 }
 
+/**
+ * Checks if a password string is an argon2 hash.
+ */
+function isArgon2Hash(password: string): boolean {
+  return password.startsWith("$argon2");
+}
+
+/**
+ * Hashes a password using argon2.
+ * Returns an argon2 hash string that can be stored in the config file.
+ */
+export async function hashPassword(password: string): Promise<string> {
+  return argon2Hash(password);
+}
+
+/**
+ * Verifies a password against the stored password (hash or plain text).
+ * Returns true if the password matches.
+ */
+async function verifyPassword(
+  inputPassword: string,
+  storedPassword: string
+): Promise<boolean> {
+  if (isArgon2Hash(storedPassword)) {
+    try {
+      return await argon2Verify(storedPassword, inputPassword);
+    } catch {
+      return false;
+    }
+  }
+  return timingSafeCompare(inputPassword, storedPassword);
+}
+
 export function createAuthRoutes(config: WebmuxConfig, jwtSecret: string) {
   const auth = new Hono();
 
@@ -48,7 +83,8 @@ export function createAuthRoutes(config: WebmuxConfig, jwtSecret: string) {
       return c.json({ error: "Password is required" }, 400);
     }
 
-    if (!timingSafeCompare(password, config.auth.password)) {
+    const isValid = await verifyPassword(password, config.auth.password);
+    if (!isValid) {
       return c.json({ error: "Invalid password" }, 401);
     }
 

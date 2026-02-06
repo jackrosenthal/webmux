@@ -98,6 +98,13 @@ port = 8002
 [auth]
 # REQUIRED: Set a password to access webmux.
 # Uncomment and set the password below, then restart the server.
+#
+# You can use either a plain text password:
+#   password = "your-secure-password"
+#
+# Or an argon2 hash for better security (generate with: webmux --hash-password):
+#   password = "$argon2id$v=19$m=19456,t=2,p=1$..."
+#
 # password = "your-secure-password"
 token_validity_days = 14
 
