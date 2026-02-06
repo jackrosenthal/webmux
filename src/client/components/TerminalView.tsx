@@ -105,6 +105,16 @@ export function TerminalView() {
     [showToast]
   );
 
+  const handlePaneSplit = useCallback(
+    async (paneId: string, direction: "horizontal" | "vertical") => {
+      const result = await splitPane(paneId, direction);
+      if (!result.success && result.error) {
+        showToast(result.error);
+      }
+    },
+    [showToast]
+  );
+
   const handleVerticalSplit = useCallback(async () => {
     if (focusedPaneId) {
       const result = await splitPane(focusedPaneId, "vertical");
@@ -223,6 +233,7 @@ export function TerminalView() {
           onPaneFocus={handlePaneFocus}
           onResizeComplete={handleResizeComplete}
           onPaneClose={handlePaneClose}
+          onPaneSplit={handlePaneSplit}
           theme={theme}
           scrollbackLines={terminalConfig.scrollback_lines}
           shortcutsConfig={shortcutsConfig}

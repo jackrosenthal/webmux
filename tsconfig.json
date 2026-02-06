@@ -17,7 +17,8 @@
     "noUncheckedIndexedAccess": true,
     "baseUrl": ".",
     "paths": {
-      "@shared/*": ["src/shared/*"]
+      "@shared/*": ["src/shared/*"],
+      "@tabler/icons-react": ["node_modules/@tabler/icons-react/dist/cjs/tabler-icons-react.cjs"]
     }
   }
 }

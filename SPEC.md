@@ -137,13 +137,13 @@ webmux/
 ┌─────────────────────────────────────────────────────────────┐
 │ [Tab 1] [Tab 2] [Tab 3] [+]                    [Theme ▼]    │
 ├─────────────────────────────────────────────────────────────┤
-│ ┌─ bash ──────────────────────────────────────────────[X]─┐ │
+│ ┌─ bash ───────────────────────────────────────[│][-][X]─┐ │
 │ │                                                         │ │
 │ │  $ ls -la                                               │ │
 │ │  total 42                                               │ │
 │ │                                                         │ │
 │ ├─────────────────────────────────────────────────────────┤ │
-│ │ ┌─ vim ────────────────────────[X]─┬─ htop ──────[X]─┐  │ │
+│ │ ┌─ vim ─────────────────[│][-][X]─┬─ htop ─[│][-][X]─┐  │ │
 │ │ │                                  │                 │  │ │
 │ │ │                                  │                 │  │ │
 │ │ └──────────────────────────────────┴─────────────────┘  │ │
@@ -155,7 +155,10 @@ webmux/
 
 Each terminal pane has a title bar displaying:
 - Window title (from terminal escape sequences, defaults to shell name)
-- Close button (X) on the right
+- Control buttons on the right:
+  - Vertical split button
+  - Horizontal split button
+  - Close button
 
 ### Controls
 

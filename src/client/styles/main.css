@@ -236,7 +236,14 @@ body,
   white-space: nowrap;
 }
 
-.pane-close-button {
+.pane-title-buttons {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.pane-title-button {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -246,14 +253,16 @@ body,
   border-radius: 3px;
   background: transparent;
   color: #666;
-  font-size: 1rem;
-  line-height: 1;
   cursor: pointer;
   flex-shrink: 0;
 }
 
-.pane-close-button:hover {
+.pane-title-button:hover {
   background: #3a3a3a;
+  color: #ccc;
+}
+
+.pane-close-button:hover {
   color: #ff6b6b;
 }
 

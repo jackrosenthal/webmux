@@ -21,6 +21,10 @@ interface SplitContainerProps {
     | undefined;
   /** Called when a pane close is requested */
   onPaneClose?: ((paneId: string) => void) | undefined;
+  /** Called when a pane split is requested */
+  onPaneSplit?:
+    | ((paneId: string, direction: "horizontal" | "vertical") => void)
+    | undefined;
   /** Terminal theme to apply */
   theme?: TerminalTheme | null | undefined;
   /** Number of lines of scrollback buffer */
@@ -56,6 +60,7 @@ export function SplitContainer({
   onPaneFocus,
   onResizeComplete,
   onPaneClose,
+  onPaneSplit,
   theme,
   scrollbackLines,
   shortcutsConfig,
@@ -69,6 +74,14 @@ export function SplitContainer({
       onPaneClose?.(node.paneId);
     }, [node.paneId, onPaneClose]);
 
+    const handleVSplit = useCallback(() => {
+      onPaneSplit?.(node.paneId, "vertical");
+    }, [node.paneId, onPaneSplit]);
+
+    const handleHSplit = useCallback(() => {
+      onPaneSplit?.(node.paneId, "horizontal");
+    }, [node.paneId, onPaneSplit]);
+
     const handleMouseEnter = useCallback(() => {
       onPaneFocus?.(node.paneId);
     }, [node.paneId, onPaneFocus]);
@@ -77,7 +90,13 @@ export function SplitContainer({
 
     return (
       <div className="split-leaf" onMouseEnter={handleMouseEnter}>
-        <PaneTitleBar title={title} focused={isFocused} onClose={handleClose} />
+        <PaneTitleBar
+          title={title}
+          focused={isFocused}
+          onVSplit={handleVSplit}
+          onHSplit={handleHSplit}
+          onClose={handleClose}
+        />
         <div className="pane-terminal-container">
           <Terminal paneId={node.paneId} wsRef={wsRef} theme={theme} scrollbackLines={scrollbackLines} shortcutsConfig={shortcutsConfig} />
         </div>
@@ -95,6 +114,7 @@ export function SplitContainer({
       onPaneFocus={onPaneFocus}
       onResizeComplete={onResizeComplete}
       onPaneClose={onPaneClose}
+      onPaneSplit={onPaneSplit}
       theme={theme}
       scrollbackLines={scrollbackLines}
       shortcutsConfig={shortcutsConfig}
@@ -114,6 +134,7 @@ function SplitNode({
   onPaneFocus,
   onResizeComplete,
   onPaneClose,
+  onPaneSplit,
   theme,
   scrollbackLines,
   shortcutsConfig,
@@ -127,6 +148,9 @@ function SplitNode({
     | ((splitNode: LayoutSplit, newSizes: number[]) => void)
     | undefined;
   onPaneClose?: ((paneId: string) => void) | undefined;
+  onPaneSplit?:
+    | ((paneId: string, direction: "horizontal" | "vertical") => void)
+    | undefined;
   theme?: TerminalTheme | null | undefined;
   scrollbackLines?: number | undefined;
   shortcutsConfig?: ShortcutsConfig | undefined;
@@ -270,6 +294,7 @@ function SplitNode({
           onPaneFocus={onPaneFocus}
           onResizeComplete={onResizeComplete}
           onPaneClose={onPaneClose}
+          onPaneSplit={onPaneSplit}
           theme={theme}
           scrollbackLines={scrollbackLines}
           shortcutsConfig={shortcutsConfig}
