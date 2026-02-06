@@ -225,7 +225,7 @@ Each step corresponds to a single commit.  Steps should be completed in order.
       (leader key, new_tab, vsplit, hsplit, kill_pane, copy, paste), allow
       editing each binding with a key capture input
 
-- [ ] **18.8** Implement Terminal tab with scrollback lines input
+- [x] **18.8** Implement Terminal tab with scrollback lines input
 
 - [ ] **18.9** Replace theme selector dropdown in TabBar with gear icon button
       that opens SettingsDialog, remove ThemeSelector.tsx

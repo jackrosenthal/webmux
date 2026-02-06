@@ -46,6 +46,10 @@ interface SecurityState {
 
 type ShortcutsState = ShortcutsConfig;
 
+interface TerminalState {
+  scrollback_lines: number;
+}
+
 export function SettingsDialog({
   isOpen,
   onClose,
@@ -84,6 +88,11 @@ export function SettingsDialog({
     paste: "Ctrl+Shift+V",
   });
 
+  // Local state for terminal tab (before save)
+  const [terminalState, setTerminalState] = useState<TerminalState>({
+    scrollback_lines: 100000,
+  });
+
   // Load settings and themes when dialog opens
   useEffect(() => {
     if (!isOpen) return;
@@ -110,6 +119,9 @@ export function SettingsDialog({
             token_validity_days: settingsData.security.token_validity_days,
           });
           setShortcutsState(settingsData.shortcuts);
+          setTerminalState({
+            scrollback_lines: settingsData.terminal.scrollback_lines,
+          });
         }
         setThemes(themesData);
       } catch (err) {
@@ -164,6 +176,12 @@ export function SettingsDialog({
         }
       }
 
+      // Build terminal update only if fields have changed
+      const terminalUpdate: Partial<TerminalState> = {};
+      if (settings && terminalState.scrollback_lines !== settings.terminal.scrollback_lines) {
+        terminalUpdate.scrollback_lines = terminalState.scrollback_lines;
+      }
+
       const result = await updateSettings({
         appearance: {
           theme: appearanceState.theme,
@@ -172,6 +190,7 @@ export function SettingsDialog({
         },
         ...(Object.keys(securityUpdate).length > 0 ? { security: securityUpdate } : {}),
         ...(Object.keys(shortcutsUpdate).length > 0 ? { shortcuts: shortcutsUpdate } : {}),
+        ...(Object.keys(terminalUpdate).length > 0 ? { terminal: terminalUpdate } : {}),
       });
       if (!result.success) {
         setError(result.error ?? "Failed to save settings");
@@ -195,7 +214,7 @@ export function SettingsDialog({
     } finally {
       setSaving(false);
     }
-  }, [appearanceState, securityState, settings, onClose, onSettingsChange]);
+  }, [appearanceState, securityState, shortcutsState, terminalState, settings, onClose, onSettingsChange]);
 
   const handleCancel = useCallback(() => {
     // Reset to original settings
@@ -212,6 +231,9 @@ export function SettingsDialog({
         token_validity_days: settings.security.token_validity_days,
       });
       setShortcutsState(settings.shortcuts);
+      setTerminalState({
+        scrollback_lines: settings.terminal.scrollback_lines,
+      });
     }
     setError(null);
     onClose();
@@ -281,7 +303,12 @@ export function SettingsDialog({
                       onChange={setShortcutsState}
                     />
                   )}
-                  {activeTab === "terminal" && <TerminalTab />}
+                  {activeTab === "terminal" && (
+                    <TerminalTab
+                      state={terminalState}
+                      onChange={setTerminalState}
+                    />
+                  )}
                 </>
               )}
             </div>
@@ -595,10 +622,37 @@ function ShortcutInput({ label, description, value, onChange }: ShortcutInputPro
   );
 }
 
-function TerminalTab() {
+interface TerminalTabProps {
+  state: TerminalState;
+  onChange: (state: TerminalState) => void;
+}
+
+function TerminalTab({ state, onChange }: TerminalTabProps) {
   return (
     <div className="settings-tab-content">
-      <p className="settings-placeholder">Terminal settings coming soon.</p>
+      <div className="settings-field">
+        <label className="settings-label" htmlFor="scrollback-input">
+          Scrollback Lines
+        </label>
+        <div className="settings-input-with-suffix">
+          <input
+            id="scrollback-input"
+            type="number"
+            className="settings-input settings-input-number"
+            value={state.scrollback_lines}
+            min={1000}
+            max={1000000}
+            step={1000}
+            onChange={(e) => {
+              const value = parseInt(e.target.value, 10);
+              if (!isNaN(value)) {
+                onChange({ ...state, scrollback_lines: value });
+              }
+            }}
+          />
+          <span className="settings-input-suffix">lines</span>
+        </div>
+      </div>
     </div>
   );
 }
