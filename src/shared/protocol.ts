@@ -42,13 +42,23 @@ export interface ClientSubscribeMessage {
 }
 
 /**
+ * Message from client to server: unsubscribe from pane output.
+ * Sent when a terminal component unmounts (e.g., tab switch).
+ */
+export interface ClientUnsubscribeMessage {
+  type: "unsubscribe";
+  paneId: string;
+}
+
+/**
  * All possible client-to-server messages.
  */
 export type ClientMessage =
   | ClientInputMessage
   | ClientResizeMessage
   | ClientFocusMessage
-  | ClientSubscribeMessage;
+  | ClientSubscribeMessage
+  | ClientUnsubscribeMessage;
 
 /**
  * Message from server to client: terminal output data.

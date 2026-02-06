@@ -59,6 +59,16 @@ function sendSubscribe(ws: WebSocket | null, paneId: string): void {
 }
 
 /**
+ * Sends an unsubscribe message when component unmounts (e.g., tab switch).
+ */
+function sendUnsubscribe(ws: WebSocket | null, paneId: string): void {
+  safeSend(ws, {
+    type: "unsubscribe",
+    paneId,
+  });
+}
+
+/**
  * Converts TerminalTheme to xterm.js ITheme format (excludes name).
  */
 function toXtermTheme(theme: TerminalTheme): Omit<TerminalTheme, "name"> {
@@ -174,7 +184,12 @@ export function Terminal({ paneId, wsRef, theme, scrollbackLines, shortcutsConfi
       });
     });
 
+    // Capture ws for cleanup
+    const ws = wsRef.current;
+
     return () => {
+      // Unsubscribe from pane so server knows to replay scrollback on next subscribe
+      sendUnsubscribe(ws, paneId);
       unregisterTerminal(paneId);
       xterm.dispose();
       xtermRef.current = null;

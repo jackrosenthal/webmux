@@ -251,6 +251,13 @@ function handleMessage(
         }
         break;
       }
+
+      case "unsubscribe": {
+        // Unsubscribe the client from the pane (e.g., when terminal component unmounts)
+        console.log(`[WS] Unsubscribe: paneId=${parsed.paneId}`);
+        unsubscribeFromPane(ws, parsed.paneId);
+        break;
+      }
     }
   } catch (err) {
     console.error("Error handling WebSocket message:", err);
