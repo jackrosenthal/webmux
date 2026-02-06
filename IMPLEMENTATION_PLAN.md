@@ -180,4 +180,17 @@ Each step corresponds to a single commit.  Steps should be completed in order.
 
 ## Phase 16: Identify Gaps
 
-- [ ] **16.1** Identify any gaps from SPEC.md that were not completed, or possibly not a part of the implementation plan (i.e., things left un-wired, etc).  Append new steps to the bottom of the implementation plan as required.
+- [x] **16.1** Identify any gaps from SPEC.md that were not completed, or possibly not a part of the implementation plan (i.e., things left un-wired, etc).  Append new steps to the bottom of the implementation plan as required.
+
+## Phase 17: Address Gaps
+
+- [ ] **17.1** Commit pnpm-workspace.yaml to version control (file exists but is
+      untracked)
+
+- [ ] **17.2** Implement password hashing with @node-rs/argon2 as specified in
+      SPEC.md - add dependency, hash passwords before comparison, update config
+      generation to store hashed passwords
+
+- [ ] **17.3** Persist theme selection to config file instead of localStorage -
+      add `/api/config/theme` PATCH endpoint to write theme to config.toml,
+      update client to call this endpoint on theme change
