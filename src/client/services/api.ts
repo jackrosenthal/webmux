@@ -363,7 +363,8 @@ export interface ClientSettings {
 export interface SettingsUpdate {
   appearance?: Partial<AppearanceConfig>;
   security?: {
-    password?: string;
+    current_password?: string;
+    new_password?: string;
     token_validity_days?: number;
   };
   shortcuts?: Partial<ShortcutsConfig>;

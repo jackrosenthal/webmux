@@ -36,6 +36,13 @@ interface AppearanceState {
   font_size: number;
 }
 
+interface SecurityState {
+  current_password: string;
+  new_password: string;
+  confirm_password: string;
+  token_validity_days: number;
+}
+
 export function SettingsDialog({
   isOpen,
   onClose,
@@ -53,6 +60,14 @@ export function SettingsDialog({
     theme: "",
     font_family: DEFAULT_FONT_FAMILY,
     font_size: 14,
+  });
+
+  // Local state for security tab (before save)
+  const [securityState, setSecurityState] = useState<SecurityState>({
+    current_password: "",
+    new_password: "",
+    confirm_password: "",
+    token_validity_days: 14,
   });
 
   // Load settings and themes when dialog opens
@@ -74,6 +89,12 @@ export function SettingsDialog({
             font_family: settingsData.appearance.font_family ?? DEFAULT_FONT_FAMILY,
             font_size: settingsData.appearance.font_size ?? 14,
           });
+          setSecurityState({
+            current_password: "",
+            new_password: "",
+            confirm_password: "",
+            token_validity_days: settingsData.security.token_validity_days,
+          });
         }
         setThemes(themesData);
       } catch (err) {
@@ -87,15 +108,44 @@ export function SettingsDialog({
   }, [isOpen]);
 
   const handleSave = useCallback(async () => {
+    // Validate password fields if changing password
+    if (securityState.new_password) {
+      if (!securityState.current_password) {
+        setError("Current password is required to change password");
+        return;
+      }
+      if (securityState.new_password !== securityState.confirm_password) {
+        setError("New passwords do not match");
+        return;
+      }
+    }
+
     setSaving(true);
     setError(null);
     try {
+      // Build security update only if fields have changed
+      const securityUpdate: {
+        current_password?: string;
+        new_password?: string;
+        token_validity_days?: number;
+      } = {};
+
+      if (securityState.new_password && securityState.current_password) {
+        securityUpdate.current_password = securityState.current_password;
+        securityUpdate.new_password = securityState.new_password;
+      }
+
+      if (settings && securityState.token_validity_days !== settings.security.token_validity_days) {
+        securityUpdate.token_validity_days = securityState.token_validity_days;
+      }
+
       const result = await updateSettings({
         appearance: {
           theme: appearanceState.theme,
           font_family: appearanceState.font_family,
           font_size: appearanceState.font_size,
         },
+        ...(Object.keys(securityUpdate).length > 0 ? { security: securityUpdate } : {}),
       });
       if (!result.success) {
         setError(result.error ?? "Failed to save settings");
@@ -104,6 +154,13 @@ export function SettingsDialog({
       if (result.settings) {
         setSettings(result.settings);
       }
+      // Clear password fields after successful save
+      setSecurityState((prev) => ({
+        ...prev,
+        current_password: "",
+        new_password: "",
+        confirm_password: "",
+      }));
       onSettingsChange?.();
       onClose();
     } catch (err) {
@@ -112,7 +169,7 @@ export function SettingsDialog({
     } finally {
       setSaving(false);
     }
-  }, [appearanceState, onClose, onSettingsChange]);
+  }, [appearanceState, securityState, settings, onClose, onSettingsChange]);
 
   const handleCancel = useCallback(() => {
     // Reset to original settings
@@ -122,7 +179,14 @@ export function SettingsDialog({
         font_family: settings.appearance.font_family ?? DEFAULT_FONT_FAMILY,
         font_size: settings.appearance.font_size ?? 14,
       });
+      setSecurityState({
+        current_password: "",
+        new_password: "",
+        confirm_password: "",
+        token_validity_days: settings.security.token_validity_days,
+      });
     }
+    setError(null);
     onClose();
   }, [settings, onClose]);
 
@@ -178,7 +242,12 @@ export function SettingsDialog({
                       onChange={setAppearanceState}
                     />
                   )}
-                  {activeTab === "security" && <SecurityTab />}
+                  {activeTab === "security" && (
+                    <SecurityTab
+                      state={securityState}
+                      onChange={setSecurityState}
+                    />
+                  )}
                   {activeTab === "shortcuts" && <ShortcutsTab />}
                   {activeTab === "terminal" && <TerminalTab />}
                 </>
@@ -277,10 +346,87 @@ function AppearanceTab({ themes, state, onChange }: AppearanceTabProps) {
   );
 }
 
-function SecurityTab() {
+interface SecurityTabProps {
+  state: SecurityState;
+  onChange: (state: SecurityState) => void;
+}
+
+function SecurityTab({ state, onChange }: SecurityTabProps) {
   return (
     <div className="settings-tab-content">
-      <p className="settings-placeholder">Security settings coming soon.</p>
+      <div className="settings-section">
+        <h4 className="settings-section-title">Change Password</h4>
+        <div className="settings-field">
+          <label className="settings-label" htmlFor="current-password-input">
+            Current Password
+          </label>
+          <input
+            id="current-password-input"
+            type="password"
+            className="settings-input"
+            value={state.current_password}
+            autoComplete="current-password"
+            onChange={(e) =>
+              onChange({ ...state, current_password: e.target.value })
+            }
+          />
+        </div>
+        <div className="settings-field">
+          <label className="settings-label" htmlFor="new-password-input">
+            New Password
+          </label>
+          <input
+            id="new-password-input"
+            type="password"
+            className="settings-input"
+            value={state.new_password}
+            autoComplete="new-password"
+            onChange={(e) =>
+              onChange({ ...state, new_password: e.target.value })
+            }
+          />
+        </div>
+        <div className="settings-field">
+          <label className="settings-label" htmlFor="confirm-password-input">
+            Confirm New Password
+          </label>
+          <input
+            id="confirm-password-input"
+            type="password"
+            className="settings-input"
+            value={state.confirm_password}
+            autoComplete="new-password"
+            onChange={(e) =>
+              onChange({ ...state, confirm_password: e.target.value })
+            }
+          />
+        </div>
+      </div>
+      <div className="settings-section">
+        <h4 className="settings-section-title">Token Settings</h4>
+        <div className="settings-field">
+          <label className="settings-label" htmlFor="token-validity-input">
+            Token Validity
+          </label>
+          <div className="settings-input-with-suffix">
+            <input
+              id="token-validity-input"
+              type="number"
+              className="settings-input settings-input-number"
+              value={state.token_validity_days}
+              min={1}
+              max={365}
+              onChange={(e) => {
+                const value = parseInt(e.target.value, 10);
+                if (!isNaN(value)) {
+                  onChange({ ...state, token_validity_days: value });
+                }
+              }}
+            />
+            <span className="settings-input-suffix">days</span>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

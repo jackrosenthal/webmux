@@ -12,6 +12,7 @@ import type {
   AuthConfig,
 } from "../../shared/config.js";
 import { saveSettings } from "../config/loader.js";
+import { verifyPassword, hashPassword } from "../auth/routes.js";
 
 /**
  * Settings exposed to the client.
@@ -33,7 +34,8 @@ export interface ClientSettings {
 export interface SettingsUpdate {
   appearance?: Partial<AppearanceConfig>;
   security?: {
-    password?: string;
+    current_password?: string;
+    new_password?: string;
     token_validity_days?: number;
   };
   shortcuts?: Partial<ShortcutsConfig>;
@@ -103,6 +105,7 @@ export function createSettingsRoutes(
       }
 
       // Validate and apply security updates
+      let passwordChanged = false;
       if (updates.security) {
         if (updates.security.token_validity_days !== undefined) {
           const days = updates.security.token_validity_days;
@@ -114,11 +117,22 @@ export function createSettingsRoutes(
           }
           auth.token_validity_days = days;
         }
-        if (updates.security.password !== undefined) {
-          if (typeof updates.security.password !== "string" || !updates.security.password) {
-            return c.json({ error: "security.password must be a non-empty string" }, 400);
+        if (updates.security.new_password !== undefined) {
+          // Require current password to change password
+          if (!updates.security.current_password) {
+            return c.json({ error: "Current password is required to change password" }, 400);
           }
-          auth.password = updates.security.password;
+          if (typeof updates.security.new_password !== "string" || !updates.security.new_password) {
+            return c.json({ error: "New password must be a non-empty string" }, 400);
+          }
+          // Verify current password
+          const isValid = await verifyPassword(updates.security.current_password, auth.password);
+          if (!isValid) {
+            return c.json({ error: "Current password is incorrect" }, 401);
+          }
+          // Hash the new password before storing
+          auth.password = await hashPassword(updates.security.new_password);
+          passwordChanged = true;
         }
       }
 
@@ -163,7 +177,7 @@ export function createSettingsRoutes(
         auth: {
           token_validity_days: auth.token_validity_days,
           // Only include password if it was updated
-          ...(updates.security?.password ? { password: auth.password } : {}),
+          ...(passwordChanged ? { password: auth.password } : {}),
         },
         shortcuts,
         terminal,

@@ -56,7 +56,7 @@ export async function hashPassword(password: string): Promise<string> {
  * Verifies a password against the stored password (hash or plain text).
  * Returns true if the password matches.
  */
-async function verifyPassword(
+export async function verifyPassword(
   inputPassword: string,
   storedPassword: string
 ): Promise<boolean> {

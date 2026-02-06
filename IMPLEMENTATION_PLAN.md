@@ -218,7 +218,7 @@ Each step corresponds to a single commit.  Steps should be completed in order.
 - [x] **18.5** Apply selected font to xterm.js instances, add `font_family` and
       `font_size` to config schema and types, persist font settings to config
 
-- [ ] **18.6** Implement Security tab with password change form (current
+- [x] **18.6** Implement Security tab with password change form (current
       password, new password, confirm), token validity days input
 
 - [ ] **18.7** Implement Shortcuts tab displaying all configurable shortcuts
