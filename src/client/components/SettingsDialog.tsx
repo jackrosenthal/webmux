@@ -13,6 +13,7 @@ import {
   getThemes,
   type ClientSettings,
 } from "../services/api";
+import { MONOSPACE_FONTS, DEFAULT_FONT_FAMILY } from "../../shared/fonts";
 
 type SettingsTab = "appearance" | "security" | "shortcuts" | "terminal";
 
@@ -31,6 +32,7 @@ const TAB_CONFIG: { id: SettingsTab; icon: typeof IconPalette; label: string }[]
 
 interface AppearanceState {
   theme: string;
+  font_family: string;
   font_size: number;
 }
 
@@ -49,6 +51,7 @@ export function SettingsDialog({
   // Local state for appearance tab (before save)
   const [appearanceState, setAppearanceState] = useState<AppearanceState>({
     theme: "",
+    font_family: DEFAULT_FONT_FAMILY,
     font_size: 14,
   });
 
@@ -68,6 +71,7 @@ export function SettingsDialog({
           setSettings(settingsData);
           setAppearanceState({
             theme: settingsData.appearance.theme,
+            font_family: settingsData.appearance.font_family ?? DEFAULT_FONT_FAMILY,
             font_size: settingsData.appearance.font_size ?? 14,
           });
         }
@@ -89,6 +93,7 @@ export function SettingsDialog({
       const result = await updateSettings({
         appearance: {
           theme: appearanceState.theme,
+          font_family: appearanceState.font_family,
           font_size: appearanceState.font_size,
         },
       });
@@ -114,6 +119,7 @@ export function SettingsDialog({
     if (settings) {
       setAppearanceState({
         theme: settings.appearance.theme,
+        font_family: settings.appearance.font_family ?? DEFAULT_FONT_FAMILY,
         font_size: settings.appearance.font_size ?? 14,
       });
     }
@@ -224,6 +230,23 @@ function AppearanceTab({ themes, state, onChange }: AppearanceTabProps) {
           {themes.map((theme) => (
             <option key={theme.name} value={theme.name}>
               {theme.name}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div className="settings-field">
+        <label className="settings-label" htmlFor="font-family-select">
+          Font Family
+        </label>
+        <select
+          id="font-family-select"
+          className="settings-select"
+          value={state.font_family}
+          onChange={(e) => onChange({ ...state, font_family: e.target.value })}
+        >
+          {MONOSPACE_FONTS.map((font) => (
+            <option key={font.name} value={font.name}>
+              {font.name}
             </option>
           ))}
         </select>

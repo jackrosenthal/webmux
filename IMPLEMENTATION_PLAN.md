@@ -210,7 +210,7 @@ Each step corresponds to a single commit.  Steps should be completed in order.
       theme list), font size number input, save/cancel buttons that call
       PATCH /api/settings
 
-- [ ] **18.4** Add Google Fonts integration - create curated list of monospace
+- [x] **18.4** Add Google Fonts integration - create curated list of monospace
       fonts (JetBrains Mono, Fira Code, Source Code Pro, etc.), add font family
       dropdown to Appearance tab, dynamically load selected font from Google
       Fonts CDN

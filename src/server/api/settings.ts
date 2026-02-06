@@ -84,6 +84,12 @@ export function createSettingsRoutes(
           }
           appearance.theme = updates.appearance.theme;
         }
+        if (updates.appearance.font_family !== undefined) {
+          if (typeof updates.appearance.font_family !== "string") {
+            return c.json({ error: "appearance.font_family must be a string" }, 400);
+          }
+          appearance.font_family = updates.appearance.font_family;
+        }
         if (updates.appearance.font_size !== undefined) {
           const fontSize = updates.appearance.font_size;
           if (typeof fontSize !== "number" || fontSize < 8 || fontSize > 32) {

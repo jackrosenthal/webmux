@@ -27,6 +27,7 @@ export interface ShortcutsConfig {
 
 export interface AppearanceConfig {
   theme: string;
+  font_family?: string;
   font_size?: number;
 }
 
@@ -60,5 +61,6 @@ export const DEFAULT_CONFIG: WebmuxConfig = {
   },
   appearance: {
     theme: "Dracula",
+    font_family: "JetBrains Mono",
   },
 };
