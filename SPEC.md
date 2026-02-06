@@ -311,6 +311,23 @@ The output binary (`webmux`) includes all frontend assets embedded and can be
 deployed without Bun or Node.js installed on the target system.  Note that
 node-pty includes native code, so the binary is platform-specific.
 
+### Runtime Dependencies
+
+The compiled binary is dynamically linked against:
+
+- **glibc 2.25+** (libc.so.6, libpthread.so.0, libdl.so.2, libm.so.6)
+- **Linux kernel 3.2+** (for PTY support)
+
+No Bun, Node.js, or other JavaScript runtime is required on the target system.
+The binary is self-contained and includes all JavaScript code and frontend
+assets.
+
+To verify dependencies on a target system:
+
+```bash
+ldd ./webmux
+```
+
 ## Security Considerations
 
 - Password stored in config file (ensure `~/.config/webmux/config.toml` has

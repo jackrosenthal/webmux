@@ -175,7 +175,7 @@ Each step corresponds to a single commit.  Steps should be completed in order.
 - [x] **15.2** Set up `bun build --compile` in build script, output single
        `webmux` ELF binary
 
-- [ ] **15.3** Test binary on clean system without Bun/Node installed, document
+- [x] **15.3** Test binary on clean system without Bun/Node installed, document
        any runtime dependencies (libc, etc.)
 
 ## Phase 16: Identify Gaps
