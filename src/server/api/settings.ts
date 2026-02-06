@@ -84,6 +84,16 @@ export function createSettingsRoutes(
           }
           appearance.theme = updates.appearance.theme;
         }
+        if (updates.appearance.font_size !== undefined) {
+          const fontSize = updates.appearance.font_size;
+          if (typeof fontSize !== "number" || fontSize < 8 || fontSize > 32) {
+            return c.json(
+              { error: "appearance.font_size must be a number between 8 and 32" },
+              400
+            );
+          }
+          appearance.font_size = fontSize;
+        }
       }
 
       // Validate and apply security updates

@@ -206,7 +206,7 @@ Each step corresponds to a single commit.  Steps should be completed in order.
       interface using icon buttons in left sidebar (Appearance, Security,
       Shortcuts, Terminal tabs)
 
-- [ ] **18.3** Implement Appearance tab with theme dropdown (reusing existing
+- [x] **18.3** Implement Appearance tab with theme dropdown (reusing existing
       theme list), font size number input, save/cancel buttons that call
       PATCH /api/settings
 

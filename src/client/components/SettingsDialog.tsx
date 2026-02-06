@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   IconPalette,
   IconLock,
@@ -6,12 +6,20 @@ import {
   IconTerminal2,
   IconX,
 } from "@tabler/icons-react";
+import type { TerminalTheme } from "../../shared/theme";
+import {
+  getSettings,
+  updateSettings,
+  getThemes,
+  type ClientSettings,
+} from "../services/api";
 
 type SettingsTab = "appearance" | "security" | "shortcuts" | "terminal";
 
 interface SettingsDialogProps {
   isOpen: boolean;
   onClose: () => void;
+  onSettingsChange?: () => void;
 }
 
 const TAB_CONFIG: { id: SettingsTab; icon: typeof IconPalette; label: string }[] = [
@@ -21,8 +29,96 @@ const TAB_CONFIG: { id: SettingsTab; icon: typeof IconPalette; label: string }[]
   { id: "terminal", icon: IconTerminal2, label: "Terminal" },
 ];
 
-export function SettingsDialog({ isOpen, onClose }: SettingsDialogProps) {
+interface AppearanceState {
+  theme: string;
+  font_size: number;
+}
+
+export function SettingsDialog({
+  isOpen,
+  onClose,
+  onSettingsChange,
+}: SettingsDialogProps) {
   const [activeTab, setActiveTab] = useState<SettingsTab>("appearance");
+  const [settings, setSettings] = useState<ClientSettings | null>(null);
+  const [themes, setThemes] = useState<TerminalTheme[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Local state for appearance tab (before save)
+  const [appearanceState, setAppearanceState] = useState<AppearanceState>({
+    theme: "",
+    font_size: 14,
+  });
+
+  // Load settings and themes when dialog opens
+  useEffect(() => {
+    if (!isOpen) return;
+
+    async function loadData() {
+      setLoading(true);
+      setError(null);
+      try {
+        const [settingsData, themesData] = await Promise.all([
+          getSettings(),
+          getThemes(),
+        ]);
+        if (settingsData) {
+          setSettings(settingsData);
+          setAppearanceState({
+            theme: settingsData.appearance.theme,
+            font_size: settingsData.appearance.font_size ?? 14,
+          });
+        }
+        setThemes(themesData);
+      } catch (err) {
+        setError("Failed to load settings");
+        console.error("Failed to load settings:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadData();
+  }, [isOpen]);
+
+  const handleSave = useCallback(async () => {
+    setSaving(true);
+    setError(null);
+    try {
+      const result = await updateSettings({
+        appearance: {
+          theme: appearanceState.theme,
+          font_size: appearanceState.font_size,
+        },
+      });
+      if (!result.success) {
+        setError(result.error ?? "Failed to save settings");
+        return;
+      }
+      if (result.settings) {
+        setSettings(result.settings);
+      }
+      onSettingsChange?.();
+      onClose();
+    } catch (err) {
+      setError("Failed to save settings");
+      console.error("Failed to save settings:", err);
+    } finally {
+      setSaving(false);
+    }
+  }, [appearanceState, onClose, onSettingsChange]);
+
+  const handleCancel = useCallback(() => {
+    // Reset to original settings
+    if (settings) {
+      setAppearanceState({
+        theme: settings.appearance.theme,
+        font_size: settings.appearance.font_size ?? 14,
+      });
+    }
+    onClose();
+  }, [settings, onClose]);
 
   if (!isOpen) {
     return null;
@@ -30,7 +126,7 @@ export function SettingsDialog({ isOpen, onClose }: SettingsDialogProps) {
 
   function handleOverlayClick(e: React.MouseEvent) {
     if (e.target === e.currentTarget) {
-      onClose();
+      handleCancel();
     }
   }
 
@@ -41,7 +137,7 @@ export function SettingsDialog({ isOpen, onClose }: SettingsDialogProps) {
           <h2>Settings</h2>
           <button
             className="settings-close-button"
-            onClick={onClose}
+            onClick={handleCancel}
             title="Close"
           >
             <IconX size={18} />
@@ -65,19 +161,40 @@ export function SettingsDialog({ isOpen, onClose }: SettingsDialogProps) {
               {TAB_CONFIG.find((t) => t.id === activeTab)?.label}
             </h3>
             <div className="settings-content-body">
-              {activeTab === "appearance" && <AppearanceTab />}
-              {activeTab === "security" && <SecurityTab />}
-              {activeTab === "shortcuts" && <ShortcutsTab />}
-              {activeTab === "terminal" && <TerminalTab />}
+              {loading ? (
+                <p className="settings-placeholder">Loading...</p>
+              ) : (
+                <>
+                  {activeTab === "appearance" && (
+                    <AppearanceTab
+                      themes={themes}
+                      state={appearanceState}
+                      onChange={setAppearanceState}
+                    />
+                  )}
+                  {activeTab === "security" && <SecurityTab />}
+                  {activeTab === "shortcuts" && <ShortcutsTab />}
+                  {activeTab === "terminal" && <TerminalTab />}
+                </>
+              )}
             </div>
+            {error && <p className="settings-error">{error}</p>}
           </div>
         </div>
         <div className="settings-footer">
-          <button className="settings-button settings-button-secondary" onClick={onClose}>
+          <button
+            className="settings-button settings-button-secondary"
+            onClick={handleCancel}
+            disabled={saving}
+          >
             Cancel
           </button>
-          <button className="settings-button settings-button-primary">
-            Save
+          <button
+            className="settings-button settings-button-primary"
+            onClick={handleSave}
+            disabled={saving || loading}
+          >
+            {saving ? "Saving..." : "Save"}
           </button>
         </div>
       </div>
@@ -85,10 +202,54 @@ export function SettingsDialog({ isOpen, onClose }: SettingsDialogProps) {
   );
 }
 
-function AppearanceTab() {
+interface AppearanceTabProps {
+  themes: TerminalTheme[];
+  state: AppearanceState;
+  onChange: (state: AppearanceState) => void;
+}
+
+function AppearanceTab({ themes, state, onChange }: AppearanceTabProps) {
   return (
     <div className="settings-tab-content">
-      <p className="settings-placeholder">Appearance settings coming soon.</p>
+      <div className="settings-field">
+        <label className="settings-label" htmlFor="theme-select">
+          Theme
+        </label>
+        <select
+          id="theme-select"
+          className="settings-select"
+          value={state.theme}
+          onChange={(e) => onChange({ ...state, theme: e.target.value })}
+        >
+          {themes.map((theme) => (
+            <option key={theme.name} value={theme.name}>
+              {theme.name}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div className="settings-field">
+        <label className="settings-label" htmlFor="font-size-input">
+          Font Size
+        </label>
+        <div className="settings-input-with-suffix">
+          <input
+            id="font-size-input"
+            type="number"
+            className="settings-input settings-input-number"
+            value={state.font_size}
+            min={8}
+            max={32}
+            onChange={(e) => {
+              const value = parseInt(e.target.value, 10);
+              if (!isNaN(value)) {
+                onChange({ ...state, font_size: value });
+              }
+            }}
+          />
+          <span className="settings-input-suffix">px</span>
+        </div>
+      </div>
     </div>
   );
 }

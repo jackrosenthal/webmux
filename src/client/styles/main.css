@@ -594,3 +594,81 @@ body.resizing-horizontal * {
 .settings-button-primary:hover {
   background: #3a8eef;
 }
+
+.settings-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Settings form fields */
+.settings-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.settings-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #ccc;
+}
+
+.settings-select {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #444;
+  border-radius: 4px;
+  background: #1e1e1e;
+  color: #f0f0f0;
+  font-size: 0.875rem;
+  cursor: pointer;
+  width: 100%;
+  max-width: 300px;
+}
+
+.settings-select:hover {
+  border-color: #666;
+}
+
+.settings-select:focus {
+  outline: none;
+  border-color: #4a9eff;
+}
+
+.settings-input {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #444;
+  border-radius: 4px;
+  background: #1e1e1e;
+  color: #f0f0f0;
+  font-size: 0.875rem;
+}
+
+.settings-input:hover {
+  border-color: #666;
+}
+
+.settings-input:focus {
+  outline: none;
+  border-color: #4a9eff;
+}
+
+.settings-input-number {
+  width: 80px;
+}
+
+.settings-input-with-suffix {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.settings-input-suffix {
+  font-size: 0.875rem;
+  color: #888;
+}
+
+.settings-error {
+  color: #ff6b6b;
+  font-size: 0.875rem;
+  margin-top: 1rem;
+}

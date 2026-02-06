@@ -27,6 +27,7 @@ export interface ShortcutsConfig {
 
 export interface AppearanceConfig {
   theme: string;
+  font_size?: number;
 }
 
 export interface WebmuxConfig {

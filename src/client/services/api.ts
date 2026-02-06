@@ -341,3 +341,70 @@ export async function updateTheme(themeName: string): Promise<ApiResult> {
     return { success: false, error: "Network error. Failed to update theme." };
   }
 }
+
+/**
+ * Settings exposed to the client from /api/settings.
+ */
+export interface ClientSettings {
+  appearance: AppearanceConfig;
+  security: {
+    token_validity_days: number;
+    has_password: boolean;
+  };
+  shortcuts: ShortcutsConfig;
+  terminal: TerminalConfig;
+}
+
+/**
+ * Partial settings for PATCH /api/settings requests.
+ */
+export interface SettingsUpdate {
+  appearance?: Partial<AppearanceConfig>;
+  security?: {
+    password?: string;
+    token_validity_days?: number;
+  };
+  shortcuts?: Partial<ShortcutsConfig>;
+  terminal?: Partial<TerminalConfig>;
+}
+
+/**
+ * Fetch current settings from the server.
+ */
+export async function getSettings(): Promise<ClientSettings | null> {
+  try {
+    const response = await fetch("/api/settings");
+    if (!response.ok) {
+      console.error("Failed to fetch settings:", response.status);
+      return null;
+    }
+    return response.json();
+  } catch (err) {
+    console.error("Settings request failed:", err);
+    return null;
+  }
+}
+
+/**
+ * Update settings on the server.
+ */
+export async function updateSettings(
+  updates: SettingsUpdate
+): Promise<ApiResult & { settings?: ClientSettings }> {
+  try {
+    const response = await fetch("/api/settings", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(updates),
+    });
+    if (!response.ok) {
+      const serverError = await parseErrorBody(response);
+      return { success: false, error: serverError ?? "Failed to update settings" };
+    }
+    const settings = await response.json();
+    return { success: true, settings };
+  } catch (err) {
+    console.error("Update settings request failed:", err);
+    return { success: false, error: "Network error. Failed to update settings." };
+  }
+}
