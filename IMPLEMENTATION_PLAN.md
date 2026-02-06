@@ -172,7 +172,7 @@ Each step corresponds to a single commit.  Steps should be completed in order.
 - [x] **15.1** Configure Vite to build frontend assets, embed in backend binary
        using Bun's asset bundling
 
-- [ ] **15.2** Set up `bun build --compile` in build script, output single
+- [x] **15.2** Set up `bun build --compile` in build script, output single
        `webmux` ELF binary
 
 - [ ] **15.3** Test binary on clean system without Bun/Node installed, document
