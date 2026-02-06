@@ -21,8 +21,10 @@ import { tabsRoutes } from "./api/tabs.js";
 import { createConfigRoutes } from "./api/config.js";
 import { createThemeRoutes } from "./api/themes.js";
 import { loadAllThemes } from "./theme/loader.js";
-import { createStaticMiddleware } from "./assets/static.js";
 import * as readline from "readline";
+
+// Import the HTML entry point - Bun bundles all referenced JS/CSS automatically
+import homepage from "../client/index.html";
 
 // Handle --hash-password CLI argument
 if (process.argv.includes("--hash-password")) {
@@ -81,10 +83,6 @@ app.route("/api/panes", panesRoutes);
 app.route("/api/config", createConfigRoutes(config.shortcuts, config.appearance, config.terminal));
 app.route("/api/themes", createThemeRoutes(themes));
 
-// Serve static files (embedded in production, filesystem in development)
-const staticMiddleware = createStaticMiddleware();
-app.use("/*", staticMiddleware);
-
 const port = config.server.port;
 
 console.log(`Webmux server listening on http://localhost:${port}`);
@@ -99,6 +97,11 @@ sessionStore.subscribe((state) => {
 
 export default {
   port,
+  development: process.env.NODE_ENV !== "production",
+  // Bun serves the HTML and its bundled assets via routes
+  routes: {
+    "/": homepage,
+  },
   async fetch(req: Request, server: Server<WebSocketData>): Promise<Response> {
     const url = new URL(req.url);
 

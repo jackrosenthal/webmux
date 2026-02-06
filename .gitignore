@@ -1,7 +1,5 @@
 node_modules/
-.pnpm-store/
 dist/
-package-lock.json
 *.log
 .env
 .env.*
@@ -9,8 +7,4 @@ package-lock.json
 *.swp
 *.swo
 *~
-.vite/
 tsconfig.tsbuildinfo
-
-# Auto-generated embedded assets manifest
-src/server/assets/embedded.ts

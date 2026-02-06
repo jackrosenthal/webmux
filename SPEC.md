@@ -16,22 +16,19 @@ allowing users to close the browser and reconnect later to the same session.
 
 ### Frontend
 
-- **Build tool**: Vite
+- **Build tool**: Bun (HTML imports with automatic bundling)
 - **UI framework**: React
-- **Terminal rendering**: react-xtermjs (xterm.js React bindings)
-- **Package manager**: pnpm (Bun used as runtime, pnpm for package management)
+- **Terminal rendering**: xterm.js
 
 ## Project Layout
 
 ```
 webmux/
 ├── package.json                 # Project manifest, scripts, dependencies
-├── pnpm-lock.yaml
+├── bun.lock                     # Bun lockfile
 ├── tsconfig.json                # Base TypeScript config (shared settings)
 ├── tsconfig.server.json         # Server TypeScript config (extends base)
 ├── tsconfig.client.json         # Client TypeScript config (extends base)
-├── vite.config.ts               # Vite configuration for frontend build
-├── index.html                   # Vite HTML entry point
 ├── SPEC.md
 ├── IMPLEMENTATION_PLAN.md
 │
@@ -54,7 +51,8 @@ webmux/
 │   │   └── config/
 │   │       └── loader.ts        # TOML config loading and validation
 │   │
-│   ├── client/                  # Frontend code (React + Vite)
+│   ├── client/                  # Frontend code (React, bundled by Bun)
+│   │   ├── index.html           # HTML entry point (imported by server)
 │   │   ├── main.tsx             # React entry point, renders App
 │   │   ├── App.tsx              # Root component, routing, auth gate
 │   │   ├── components/
@@ -85,8 +83,7 @@ webmux/
 │   └── gogh.json                # Bundled Gogh themes (fetched at build time)
 │
 └── dist/                        # Build output (gitignored)
-    ├── client/                  # Vite frontend build
-    └── webmux                   # Compiled ELF binary
+    └── webmux                   # Compiled ELF binary (includes frontend)
 ```
 
 ### Key Files
@@ -290,14 +287,14 @@ correct terminal.
 
 ## Development
 
-Requires Bun to be installed (for the backend runtime).
+Requires Bun to be installed.
 
 ```bash
 # Install dependencies
-pnpm install
+bun install
 
-# Run development server (starts both backend and Vite frontend)
-pnpm run dev
+# Run development server (with hot reload)
+bun run dev
 ```
 
 ## Production Build
@@ -306,7 +303,7 @@ Build produces a self-contained ELF binary for distribution using
 `bun build --compile`:
 
 ```bash
-pnpm run build
+bun run build
 ```
 
 The output binary (`webmux`) includes all frontend assets embedded and can be

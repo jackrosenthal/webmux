@@ -10,8 +10,11 @@ import path from "path";
 import os from "os";
 import type { TerminalTheme } from "../../shared/theme.js";
 
-// Import bundled themes with { type: "file" } so Bun embeds them in the binary
-import bundledThemesPath from "../../../themes/gogh.json" with { type: "file" };
+// Import bundled themes with { type: "file" } so Bun embeds them in the binary.
+// TypeScript's resolveJsonModule types this as JSON content, but Bun's
+// { type: "file" } import attribute returns a path string at runtime.
+import bundledThemesImport from "../../../themes/gogh.json" with { type: "file" };
+const bundledThemesPath = bundledThemesImport as unknown as string;
 
 function getUserThemesDir(): string {
   return path.join(os.homedir(), ".config", "webmux", "themes");

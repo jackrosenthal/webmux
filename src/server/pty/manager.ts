@@ -137,7 +137,7 @@ export class PtyManager {
       terminal: {
         cols,
         rows,
-        data(terminal, data) {
+        data(_terminal, data) {
           const str = typeof data === "string" ? data : data.toString();
           if (dataCallback) {
             dataCallback(str);
