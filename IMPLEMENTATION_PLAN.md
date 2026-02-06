@@ -221,7 +221,7 @@ Each step corresponds to a single commit.  Steps should be completed in order.
 - [x] **18.6** Implement Security tab with password change form (current
       password, new password, confirm), token validity days input
 
-- [ ] **18.7** Implement Shortcuts tab displaying all configurable shortcuts
+- [x] **18.7** Implement Shortcuts tab displaying all configurable shortcuts
       (leader key, new_tab, vsplit, hsplit, kill_pane, copy, paste), allow
       editing each binding with a key capture input
 

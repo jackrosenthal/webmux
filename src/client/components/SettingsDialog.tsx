@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import {
   IconPalette,
   IconLock,
@@ -14,6 +14,7 @@ import {
   type ClientSettings,
 } from "../services/api";
 import { MONOSPACE_FONTS, DEFAULT_FONT_FAMILY } from "../../shared/fonts";
+import type { ShortcutsConfig } from "../../shared/config";
 
 type SettingsTab = "appearance" | "security" | "shortcuts" | "terminal";
 
@@ -43,6 +44,8 @@ interface SecurityState {
   token_validity_days: number;
 }
 
+type ShortcutsState = ShortcutsConfig;
+
 export function SettingsDialog({
   isOpen,
   onClose,
@@ -70,6 +73,17 @@ export function SettingsDialog({
     token_validity_days: 14,
   });
 
+  // Local state for shortcuts tab (before save)
+  const [shortcutsState, setShortcutsState] = useState<ShortcutsState>({
+    leader: "Ctrl+b",
+    new_tab: "n",
+    vsplit: "|",
+    hsplit: "-",
+    kill_pane: "x",
+    copy: "Ctrl+Shift+C",
+    paste: "Ctrl+Shift+V",
+  });
+
   // Load settings and themes when dialog opens
   useEffect(() => {
     if (!isOpen) return;
@@ -95,6 +109,7 @@ export function SettingsDialog({
             confirm_password: "",
             token_validity_days: settingsData.security.token_validity_days,
           });
+          setShortcutsState(settingsData.shortcuts);
         }
         setThemes(themesData);
       } catch (err) {
@@ -139,6 +154,16 @@ export function SettingsDialog({
         securityUpdate.token_validity_days = securityState.token_validity_days;
       }
 
+      // Build shortcuts update only if fields have changed
+      const shortcutsUpdate: Partial<ShortcutsConfig> = {};
+      if (settings) {
+        for (const key of Object.keys(shortcutsState) as (keyof ShortcutsConfig)[]) {
+          if (shortcutsState[key] !== settings.shortcuts[key]) {
+            shortcutsUpdate[key] = shortcutsState[key];
+          }
+        }
+      }
+
       const result = await updateSettings({
         appearance: {
           theme: appearanceState.theme,
@@ -146,6 +171,7 @@ export function SettingsDialog({
           font_size: appearanceState.font_size,
         },
         ...(Object.keys(securityUpdate).length > 0 ? { security: securityUpdate } : {}),
+        ...(Object.keys(shortcutsUpdate).length > 0 ? { shortcuts: shortcutsUpdate } : {}),
       });
       if (!result.success) {
         setError(result.error ?? "Failed to save settings");
@@ -185,6 +211,7 @@ export function SettingsDialog({
         confirm_password: "",
         token_validity_days: settings.security.token_validity_days,
       });
+      setShortcutsState(settings.shortcuts);
     }
     setError(null);
     onClose();
@@ -248,7 +275,12 @@ export function SettingsDialog({
                       onChange={setSecurityState}
                     />
                   )}
-                  {activeTab === "shortcuts" && <ShortcutsTab />}
+                  {activeTab === "shortcuts" && (
+                    <ShortcutsTab
+                      state={shortcutsState}
+                      onChange={setShortcutsState}
+                    />
+                  )}
                   {activeTab === "terminal" && <TerminalTab />}
                 </>
               )}
@@ -431,10 +463,134 @@ function SecurityTab({ state, onChange }: SecurityTabProps) {
   );
 }
 
-function ShortcutsTab() {
+/**
+ * Shortcut configuration metadata for display.
+ */
+const SHORTCUT_FIELDS: {
+  key: keyof ShortcutsConfig;
+  label: string;
+  description: string;
+}[] = [
+  { key: "leader", label: "Leader Key", description: "Prefix for all shortcuts" },
+  { key: "new_tab", label: "New Tab", description: "Create a new tab" },
+  { key: "vsplit", label: "Vertical Split", description: "Split pane vertically" },
+  { key: "hsplit", label: "Horizontal Split", description: "Split pane horizontally" },
+  { key: "kill_pane", label: "Kill Pane", description: "Close current pane" },
+  { key: "copy", label: "Copy", description: "Copy selection to clipboard" },
+  { key: "paste", label: "Paste", description: "Paste from clipboard" },
+];
+
+interface ShortcutsTabProps {
+  state: ShortcutsState;
+  onChange: (state: ShortcutsState) => void;
+}
+
+function ShortcutsTab({ state, onChange }: ShortcutsTabProps) {
   return (
     <div className="settings-tab-content">
-      <p className="settings-placeholder">Shortcut settings coming soon.</p>
+      <p className="settings-shortcuts-hint">
+        Click on a shortcut to edit it, then press the new key combination.
+      </p>
+      <div className="settings-shortcuts-list">
+        {SHORTCUT_FIELDS.map((field) => (
+          <ShortcutInput
+            key={field.key}
+            label={field.label}
+            description={field.description}
+            value={state[field.key]}
+            onChange={(value) => onChange({ ...state, [field.key]: value })}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+interface ShortcutInputProps {
+  label: string;
+  description: string;
+  value: string;
+  onChange: (value: string) => void;
+}
+
+/**
+ * Converts a KeyboardEvent to a shortcut string like "Ctrl+Shift+K".
+ */
+function keyEventToShortcut(e: KeyboardEvent): string | null {
+  // Ignore modifier-only keypresses
+  if (["Control", "Alt", "Shift", "Meta"].includes(e.key)) {
+    return null;
+  }
+
+  const parts: string[] = [];
+  if (e.ctrlKey) parts.push("Ctrl");
+  if (e.altKey) parts.push("Alt");
+  if (e.shiftKey) parts.push("Shift");
+  if (e.metaKey) parts.push("Meta");
+
+  // Normalize key name
+  let key = e.key;
+  if (key.length === 1) {
+    // Single character - use uppercase for letters
+    key = key.toUpperCase();
+  } else if (key === " ") {
+    key = "Space";
+  }
+
+  parts.push(key);
+  return parts.join("+");
+}
+
+function ShortcutInput({ label, description, value, onChange }: ShortcutInputProps) {
+  const [isCapturing, setIsCapturing] = useState(false);
+  const inputRef = useRef<HTMLButtonElement>(null);
+
+  const handleClick = useCallback(() => {
+    setIsCapturing(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isCapturing) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      const shortcut = keyEventToShortcut(e);
+      if (shortcut) {
+        onChange(shortcut);
+        setIsCapturing(false);
+      }
+    };
+
+    const handleBlur = () => {
+      setIsCapturing(false);
+    };
+
+    window.addEventListener("keydown", handleKeyDown, true);
+    inputRef.current?.addEventListener("blur", handleBlur);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown, true);
+      inputRef.current?.removeEventListener("blur", handleBlur);
+    };
+  }, [isCapturing, onChange]);
+
+  return (
+    <div className="settings-shortcut-row">
+      <div className="settings-shortcut-info">
+        <span className="settings-shortcut-label">{label}</span>
+        <span className="settings-shortcut-description">{description}</span>
+      </div>
+      <button
+        ref={inputRef}
+        type="button"
+        className={`settings-shortcut-key ${isCapturing ? "capturing" : ""}`}
+        onClick={handleClick}
+        title="Click to edit"
+      >
+        {isCapturing ? "Press key..." : value}
+      </button>
     </div>
   );
 }
