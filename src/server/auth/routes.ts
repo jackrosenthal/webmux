@@ -99,10 +99,14 @@ export function createAuthRoutes(config: WebmuxConfig, jwtSecret: string) {
       jwtSecret
     );
 
+    // Only set secure flag when running over HTTPS
+    const isSecure = c.req.header("x-forwarded-proto") === "https" ||
+                     c.req.url.startsWith("https://");
+
     setCookie(c, AUTH_COOKIE_NAME, token, {
       httpOnly: true,
-      secure: true,
-      sameSite: "Strict",
+      secure: isSecure,
+      sameSite: isSecure ? "Strict" : "Lax",
       path: "/",
       maxAge: expiresIn,
     });

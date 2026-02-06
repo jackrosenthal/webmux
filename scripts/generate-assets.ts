@@ -76,38 +76,48 @@ async function generateModule(assets: AssetEntry[]): Promise<string> {
     "",
     "/**",
     " * Embedded frontend assets for production builds.",
-    " * Files are loaded using Bun.file() with static paths that Bun can resolve",
-    " * at compile time, causing them to be embedded in the compiled binary.",
-    " *",
-    " * IMPORTANT: Each Bun.file() call uses import.meta.dirname directly (not",
-    " * through a variable) so that Bun's static analysis can resolve and embed",
-    " * the files during `bun build --compile`.",
+    " * Files are imported using the { type: \"file\" } attribute so Bun embeds",
+    " * them in the compiled binary and provides usable paths at runtime.",
     " */",
     "",
-    "interface EmbeddedAsset {",
-    "  file: () => ReturnType<typeof Bun.file>;",
-    "  mimeType: string;",
-    "}",
-    "",
-    "export const embeddedAssets: Record<string, EmbeddedAsset> = {",
   ];
 
-  for (const asset of assets) {
-    // Escape any special characters in the path
-    const escapedPath = asset.relativePath.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+  // Generate import statements with { type: "file" } attribute
+  for (let i = 0; i < assets.length; i++) {
+    const asset = assets[i]!;
     const filePath = asset.relativePath.slice(1); // Remove leading /
-    // Use import.meta.dirname directly in each Bun.file() call for proper static analysis
     // Path: src/server/assets/ -> ../../.. -> project root -> dist/client/
-    lines.push(`  "${escapedPath}": {`);
-    lines.push(`    file: () => Bun.file(import.meta.dirname + "/../../../dist/client/${filePath}"),`);
-    lines.push(`    mimeType: "${asset.mimeType}",`);
-    lines.push("  },");
+    lines.push(`import asset${i} from "../../../dist/client/${filePath}" with { type: "file" };`);
+  }
+
+  lines.push("");
+  lines.push("interface EmbeddedAsset {");
+  lines.push("  path: string;");
+  lines.push("  mimeType: string;");
+  lines.push("}");
+  lines.push("");
+  lines.push("const embeddedAssets: Record<string, EmbeddedAsset> = {");
+
+  for (let i = 0; i < assets.length; i++) {
+    const asset = assets[i]!;
+    const escapedPath = asset.relativePath.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+    lines.push(`  "${escapedPath}": { path: asset${i}, mimeType: "${asset.mimeType}" },`);
   }
 
   lines.push("};");
   lines.push("");
-  lines.push("export function getEmbeddedAsset(urlPath: string): EmbeddedAsset | undefined {");
-  lines.push("  return embeddedAssets[urlPath];");
+  lines.push("interface EmbeddedAssetResult {");
+  lines.push("  file: () => ReturnType<typeof Bun.file>;");
+  lines.push("  mimeType: string;");
+  lines.push("}");
+  lines.push("");
+  lines.push("export function getEmbeddedAsset(urlPath: string): EmbeddedAssetResult | undefined {");
+  lines.push("  const asset = embeddedAssets[urlPath];");
+  lines.push("  if (!asset) return undefined;");
+  lines.push("  return {");
+  lines.push("    file: () => Bun.file(asset.path),");
+  lines.push("    mimeType: asset.mimeType,");
+  lines.push("  };");
   lines.push("}");
   lines.push("");
 

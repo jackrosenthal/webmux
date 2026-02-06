@@ -18,8 +18,12 @@ interface TerminalProps {
  * Safely sends a message over WebSocket, catching and logging errors.
  */
 function safeSend(ws: WebSocket | null, message: ClientMessage): void {
-  if (!ws || ws.readyState !== WebSocket.OPEN) return;
+  if (!ws || ws.readyState !== WebSocket.OPEN) {
+    console.log(`[Terminal] safeSend: cannot send, ws=${ws ? 'exists' : 'null'}, readyState=${ws?.readyState}`);
+    return;
+  }
   try {
+    console.log(`[Terminal] Sending message: ${message.type}`);
     ws.send(JSON.stringify(message));
   } catch (err) {
     console.error("Failed to send WebSocket message:", err);
@@ -47,6 +51,7 @@ function sendResize(
  * Sends a subscribe message to request scrollback replay and live output.
  */
 function sendSubscribe(ws: WebSocket | null, paneId: string): void {
+  console.log(`[Terminal] Sending subscribe for pane ${paneId}, ws=${ws ? 'exists' : 'null'}, readyState=${ws?.readyState}`);
   safeSend(ws, {
     type: "subscribe",
     paneId,
@@ -184,9 +189,14 @@ export function Terminal({ paneId, wsRef, theme, scrollbackLines }: TerminalProp
 
   // Subscribe to the pane to receive scrollback replay and live output
   useEffect(() => {
+    console.log(`[Terminal] Subscribe effect running for pane ${paneId}`);
     const ws = wsRef.current;
-    if (!ws) return;
+    if (!ws) {
+      console.log(`[Terminal] No WebSocket, skipping subscribe`);
+      return;
+    }
 
+    console.log(`[Terminal] WebSocket readyState: ${ws.readyState} (OPEN=${WebSocket.OPEN})`);
     // If WebSocket is already open, subscribe immediately
     if (ws.readyState === WebSocket.OPEN) {
       sendSubscribe(ws, paneId);
@@ -194,6 +204,7 @@ export function Terminal({ paneId, wsRef, theme, scrollbackLines }: TerminalProp
 
     // Also subscribe when WebSocket opens (handles reconnect case)
     const handleOpen = () => {
+      console.log(`[Terminal] WebSocket opened, subscribing`);
       sendSubscribe(ws, paneId);
     };
 

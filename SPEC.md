@@ -10,7 +10,7 @@ allowing users to close the browser and reconnect later to the same session.
 
 - **Runtime**: Bun (enables single-binary compilation via `bun build --compile`)
 - **HTTP framework**: Hono (lightweight, works well with Bun)
-- **Terminal emulation**: node-pty for spawning PTY processes
+- **Terminal emulation**: Bun's built-in Terminal API for spawning PTY processes
 - **WebSocket**: Bun's native WebSocket support
 - **Authentication**: Password configured in TOML config file
 
@@ -309,7 +309,7 @@ pnpm run build
 
 The output binary (`webmux`) includes all frontend assets embedded and can be
 deployed without Bun or Node.js installed on the target system.  Note that
-node-pty includes native code, so the binary is platform-specific.
+The binary is platform-specific (Linux x64).
 
 ### Runtime Dependencies
 
@@ -349,7 +349,7 @@ ldd ./webmux
 ### Backend
 - bun (runtime)
 - hono (HTTP framework)
-- node-pty (PTY spawning)
+- Bun Terminal API (PTY spawning)
 - @node-rs/argon2 (password hashing for stored tokens)
 - smol-toml (TOML parsing)
 

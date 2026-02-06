@@ -1,6 +1,6 @@
-import * as nodePty from "node-pty";
 import * as fs from "fs";
 import * as os from "os";
+import type { Subprocess, Terminal } from "bun";
 
 /**
  * Maximum size of the scrollback buffer per pane in bytes.
@@ -31,9 +31,18 @@ export function getUserShell(): string {
   return "/bin/sh";
 }
 
-export interface PtyInstance {
-  pty: nodePty.IPty;
-  paneId: string;
+/**
+ * Wrapper around Bun's Terminal API for PTY management.
+ */
+export interface BunPty {
+  pid: number;
+  proc: Subprocess;
+  terminal: Terminal;
+  write(data: string): void;
+  resize(cols: number, rows: number): void;
+  kill(): void;
+  onData(callback: (data: string) => void): void;
+  onExit(callback: (info: { exitCode: number; signal?: number }) => void): void;
 }
 
 /**
@@ -89,35 +98,94 @@ class ScrollbackBuffer {
 }
 
 /**
- * Manages PTY instances, tracking them by pane ID.
+ * Manages PTY instances using Bun's Terminal API, tracking them by pane ID.
  * Also maintains a scrollback buffer for each pane for replay on reconnect.
  */
 export class PtyManager {
-  private ptys: Map<string, nodePty.IPty> = new Map();
+  private ptys: Map<string, BunPty> = new Map();
   private scrollbackBuffers: Map<string, ScrollbackBuffer> = new Map();
 
   /**
    * Spawns a new PTY for the given pane ID.
    * Returns the PTY instance.
    */
-  spawn(paneId: string, cols: number = 80, rows: number = 24): nodePty.IPty {
+  spawn(paneId: string, cols: number = 80, rows: number = 24): BunPty {
     const shell = getUserShell();
-    const pty = nodePty.spawn(shell, [], {
-      name: "xterm-256color",
-      cols,
-      rows,
-      cwd: os.homedir(),
-      env: process.env as Record<string, string>,
+    const home = os.homedir();
+    console.log(`[PTY] Spawning shell: ${shell} in ${home} for pane ${paneId} (${cols}x${rows})`);
+
+    // Spawn as interactive login shell
+    const shellArgs: string[] = [];
+    if (shell.endsWith("bash") || shell.endsWith("zsh")) {
+      shellArgs.push("-i", "-l");
+    }
+
+    // Callbacks to be set later via onData/onExit
+    let dataCallback: ((data: string) => void) | null = null;
+    let exitCallback: ((info: { exitCode: number; signal?: number }) => void) | null = null;
+
+    // Ensure proper terminal environment
+    const env = {
+      ...process.env,
+      TERM: "xterm-256color",
+      COLORTERM: "truecolor",
+    } as Record<string, string>;
+
+    const proc = Bun.spawn([shell, ...shellArgs], {
+      cwd: home,
+      env,
+      terminal: {
+        cols,
+        rows,
+        data(terminal, data) {
+          const str = typeof data === "string" ? data : data.toString();
+          if (dataCallback) {
+            dataCallback(str);
+          }
+        },
+      },
     });
-    this.ptys.set(paneId, pty);
+
+    console.log(`[PTY] Shell spawned with pid ${proc.pid} for pane ${paneId}`);
+
+    // Handle exit
+    proc.exited.then((exitCode) => {
+      if (exitCallback) {
+        exitCallback({ exitCode });
+      }
+    });
+
+    const bunPty: BunPty = {
+      pid: proc.pid,
+      proc,
+      terminal: proc.terminal!,
+      write(data: string) {
+        proc.terminal?.write(data);
+      },
+      resize(newCols: number, newRows: number) {
+        proc.terminal?.resize(newCols, newRows);
+      },
+      kill() {
+        proc.terminal?.close();
+        proc.kill();
+      },
+      onData(callback: (data: string) => void) {
+        dataCallback = callback;
+      },
+      onExit(callback: (info: { exitCode: number; signal?: number }) => void) {
+        exitCallback = callback;
+      },
+    };
+
+    this.ptys.set(paneId, bunPty);
     this.scrollbackBuffers.set(paneId, new ScrollbackBuffer());
-    return pty;
+    return bunPty;
   }
 
   /**
    * Gets the PTY instance for the given pane ID, or undefined if not found.
    */
-  get(paneId: string): nodePty.IPty | undefined {
+  get(paneId: string): BunPty | undefined {
     return this.ptys.get(paneId);
   }
 

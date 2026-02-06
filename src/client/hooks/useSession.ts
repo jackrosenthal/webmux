@@ -122,6 +122,8 @@ export function useSession(): UseSessionResult {
 
     ws.addEventListener("close", () => {
       if (!mountedRef.current) return;
+      // Only handle close for the current WebSocket (avoid StrictMode race condition)
+      if (wsRef.current !== ws) return;
 
       wsRef.current = null;
 

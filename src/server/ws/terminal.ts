@@ -198,6 +198,8 @@ function handleMessage(
     return;
   }
 
+  console.log(`[WS] Received message: ${parsed.type}, paneId: ${"paneId" in parsed ? parsed.paneId : "N/A"}`);
+
   try {
     switch (parsed.type) {
       case "input": {
@@ -226,11 +228,14 @@ function handleMessage(
         const subscribers = paneSubscribers.get(parsed.paneId);
         const alreadySubscribed = subscribers?.has(ws) ?? false;
 
+        console.log(`[WS] Subscribe: paneId=${parsed.paneId}, alreadySubscribed=${alreadySubscribed}, ptyExists=${!!ptyManager.get(parsed.paneId)}`);
+
         subscribeToPty(ws, parsed.paneId);
 
         // Only send scrollback if this is a new subscription
         if (!alreadySubscribed) {
           const scrollback = ptyManager.getScrollback(parsed.paneId);
+          console.log(`[WS] Scrollback for ${parsed.paneId}: ${scrollback.length} bytes`);
           if (scrollback) {
             const replayMessage: ServerMessage = {
               type: "output",
@@ -261,12 +266,18 @@ function handleMessage(
  */
 export function attachPtyToWebSocket(paneId: string): void {
   const pty = ptyManager.get(paneId);
-  if (!pty) return;
+  if (!pty) {
+    console.error(`[PTY] attachPtyToWebSocket: No PTY found for pane ${paneId}`);
+    return;
+  }
 
+  console.log(`[PTY] Attaching WebSocket handler for pane ${paneId}`);
   const oscParser = new OscTitleParser();
 
+  // Set up data callback using BunPty's onData method
   pty.onData((data: string) => {
     try {
+      console.log(`[PTY] Output for ${paneId}: ${data.length} bytes`);
       // Buffer output for scrollback replay
       ptyManager.appendToScrollback(paneId, data);
 
@@ -280,6 +291,8 @@ export function attachPtyToWebSocket(paneId: string): void {
         console.error(`Failed to parse OSC sequence for pane ${paneId}:`, err);
       }
 
+      const subscriberCount = paneSubscribers.get(paneId)?.size ?? 0;
+      console.log(`[PTY] Broadcasting to ${subscriberCount} subscribers for pane ${paneId}`);
       broadcastToPane(paneId, {
         type: "output",
         paneId,
@@ -290,7 +303,9 @@ export function attachPtyToWebSocket(paneId: string): void {
     }
   });
 
-  pty.onExit(({ exitCode }: { exitCode: number }) => {
+  // Set up exit callback using BunPty's onExit method
+  pty.onExit(({ exitCode, signal }: { exitCode: number; signal?: number }) => {
+    console.log(`[PTY] Process exited for pane ${paneId}: exitCode=${exitCode}, signal=${signal}`);
     broadcastToPane(paneId, {
       type: "exit",
       paneId,
@@ -307,7 +322,15 @@ export function createWebSocketHandlers(jwtSecret: string) {
     async open(
       ws: ServerWebSocket<WebSocketData & { jwtSecret?: string; token?: string }>
     ) {
-      // Verify the JWT token
+      console.log(`[WS] Connection opened, authenticated=${ws.data.authenticated}`);
+      // If already authenticated by the HTTP upgrade handler, just register the client
+      if (ws.data.authenticated) {
+        connectedClients.add(ws as ServerWebSocket<WebSocketData>);
+        console.log(`[WS] Client added, total connected: ${connectedClients.size}`);
+        return;
+      }
+
+      // Verify the JWT token (fallback path if token was passed via data)
       const token = ws.data.token;
       if (!token) {
         ws.close(1008, "Unauthorized");
@@ -343,7 +366,8 @@ export function createWebSocketHandlers(jwtSecret: string) {
       handleMessage(ws, messageStr);
     },
 
-    close(ws: ServerWebSocket<WebSocketData>) {
+    close(ws: ServerWebSocket<WebSocketData>, code: number, reason: string) {
+      console.log(`[WS] Connection closed, code=${code}, reason=${reason}`);
       connectedClients.delete(ws);
       unsubscribeFromAllPanes(ws);
     },

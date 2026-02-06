@@ -10,10 +10,8 @@ import path from "path";
 import os from "os";
 import type { TerminalTheme } from "../../shared/theme.js";
 
-const BUNDLED_THEMES_PATH = path.resolve(
-  import.meta.dirname,
-  "../../../themes/gogh.json"
-);
+// Import bundled themes with { type: "file" } so Bun embeds them in the binary
+import bundledThemesPath from "../../../themes/gogh.json" with { type: "file" };
 
 function getUserThemesDir(): string {
   return path.join(os.homedir(), ".config", "webmux", "themes");
@@ -54,15 +52,17 @@ function isValidTheme(obj: unknown): obj is TerminalTheme {
 
 /**
  * Loads bundled themes from themes/gogh.json.
+ * Uses the embedded path from the import attribute for compiled binary support.
  */
 async function loadBundledThemes(): Promise<TerminalTheme[]> {
-  if (!existsSync(BUNDLED_THEMES_PATH)) {
-    console.warn(`Bundled themes not found at ${BUNDLED_THEMES_PATH}`);
+  try {
+    const content = await Bun.file(bundledThemesPath).text();
+    const themes = JSON.parse(content) as unknown[];
+    return themes.filter(isValidTheme);
+  } catch (err) {
+    console.warn("Failed to load bundled themes:", err);
     return [];
   }
-  const content = await readFile(BUNDLED_THEMES_PATH, "utf-8");
-  const themes = JSON.parse(content) as unknown[];
-  return themes.filter(isValidTheme);
 }
 
 /**
