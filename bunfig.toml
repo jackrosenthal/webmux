@@ -1,0 +1,3 @@
+[build]
+# Force production JSX transform (jsx/jsxs) instead of development (jsxDEV)
+jsx = "react-jsx"
