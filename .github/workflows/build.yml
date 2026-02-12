@@ -1,0 +1,106 @@
+name: Build and Release
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - target: bun-linux-x64
+            artifact: webmux-linux-x64
+            binary: webmux
+          - target: bun-linux-arm64
+            artifact: webmux-linux-arm64
+            binary: webmux
+          - target: bun-darwin-x64
+            artifact: webmux-darwin-x64
+            binary: webmux
+          - target: bun-darwin-arm64
+            artifact: webmux-darwin-arm64
+            binary: webmux
+          - target: bun-windows-x64
+            artifact: webmux-windows-x64
+            binary: webmux.exe
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - run: bun install --frozen-lockfile
+
+      - name: Build for ${{ matrix.target }}
+        run: |
+          NODE_ENV=production bun build --compile --target=${{ matrix.target }} \
+            --sourcemap=linked --outfile=dist/${{ matrix.binary }} src/server/index.ts
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: dist/${{ matrix.binary }}
+
+  release:
+    needs: build
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Bump version
+        id: version
+        run: |
+          CURRENT=$(jq -r .version package.json)
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT"
+          PATCH=$((PATCH + 1))
+          NEW_VERSION="$MAJOR.$MINOR.$PATCH"
+          jq --arg v "$NEW_VERSION" '.version = $v' package.json > package.json.tmp
+          mv package.json.tmp package.json
+          echo "version=v$NEW_VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Commit version bump
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add package.json
+          git commit -m "chore: bump version to ${{ steps.version.outputs.version }} [skip ci]"
+          git push
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Prepare release assets
+        run: |
+          mkdir -p release
+          for dir in artifacts/webmux-*/; do
+            name=$(basename "$dir")
+            if [[ "$name" == *windows* ]]; then
+              (cd "$dir" && zip "../../release/$name.zip" webmux.exe)
+            else
+              binary=$(find "$dir" -type f)
+              chmod +x "$binary"
+              tar --zstd -cf "release/$name.tar.zst" -C "$dir" "$(basename "$binary")"
+            fi
+          done
+
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "${{ steps.version.outputs.version }}" \
+            release/* \
+            --title "Webmux ${{ steps.version.outputs.version }}" \
+            --generate-notes
